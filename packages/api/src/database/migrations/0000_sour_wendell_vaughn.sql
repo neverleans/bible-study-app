@@ -48,6 +48,7 @@ CREATE TABLE "notes" (
 );
 --> statement-breakpoint
 ALTER TABLE "notes" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE "notes" FORCE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "study_aids" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"book_id" integer NOT NULL,

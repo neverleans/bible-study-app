@@ -56,3 +56,33 @@ export interface HealthResponse {
   status: string;
   info: Record<string, unknown>;
 }
+
+export interface Note {
+  id: string;
+  userId: string;
+  bookAbbrev: string;
+  bookName: string;
+  chapterNumber: number;
+  verseNumber: number;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateNotePayload {
+  bookAbbrev: string;
+  chapterNumber: number;
+  verseNumber: number;
+  content: string;
+}
+
+export interface UpdateNotePayload {
+  content: string;
+}
+
+export interface GetNotesParams {
+  book?: string;
+  chapter?: number;
+  verse?: number;
+}
+

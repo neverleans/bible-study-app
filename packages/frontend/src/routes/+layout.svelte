@@ -34,6 +34,14 @@
     <nav class="flex items-center gap-3">
       <a href="/" class="text-sm hover:underline" style="color: var(--color-muted)">Início</a>
       <a
+        href="/notes"
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors hover:border-blue-500 cursor-pointer"
+        style="background-color: var(--color-surface); border-color: var(--color-border); color: var(--color-text)"
+      >
+        <span>📝</span>
+        <span>Anotações</span>
+      </a>
+      <a
         href="/search"
         class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors hover:border-blue-500 cursor-pointer"
         style="background-color: var(--color-surface); border-color: var(--color-border); color: var(--color-text)"

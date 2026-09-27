@@ -1,15 +1,100 @@
 <script lang="ts">
   import Breadcrumbs from '$components/bible/Breadcrumbs.svelte';
   import VerseList from '$components/bible/VerseList.svelte';
+  import NoteDrawer from '$components/notes/NoteDrawer.svelte';
+  import { api } from '$api/client';
+  import { onMount } from 'svelte';
   import type { PageData } from './$types';
-  import type { Verse } from '$types';
+  import type { Verse, Note } from '$types';
 
   let { data }: { data: PageData } = $props();
 
   let selectedVerse = $state<number | null>(null);
+  let isDrawerOpen = $state(false);
+  let chapterNotes = $state<Note[]>([]);
+  let isLoadingNotes = $state(false);
+
+  // Derived map of note counts per verse
+  let notesCountByVerse = $derived(
+    chapterNotes.reduce<Record<number, number>>((acc, note) => {
+      acc[note.verseNumber] = (acc[note.verseNumber] || 0) + 1;
+      return acc;
+    }, {})
+  );
+
+  let activeVerse = $derived(
+    selectedVerse !== null
+      ? data.chapter.verses.find((v) => v.number === selectedVerse) || null
+      : null
+  );
+
+  let activeVerseNotes = $derived(
+    selectedVerse !== null
+      ? chapterNotes.filter((n) => n.verseNumber === selectedVerse)
+      : []
+  );
+
+  async function loadChapterNotes() {
+    isLoadingNotes = true;
+    try {
+      chapterNotes = await api.getNotes({
+        book: data.chapter.book.abbrev,
+        chapter: data.chapter.number,
+      });
+    } catch (err) {
+      console.error('Falha ao carregar notas:', err);
+    } finally {
+      isLoadingNotes = false;
+    }
+  }
+
+  $effect(() => {
+    if (data.chapter?.book?.abbrev && data.chapter?.number) {
+      selectedVerse = null;
+      isDrawerOpen = false;
+      loadChapterNotes();
+    }
+  });
+
+  onMount(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const match = window.location.hash.match(/^#v(\d+)$/);
+      if (match) {
+        const vNum = parseInt(match[1], 10);
+        selectedVerse = vNum;
+        isDrawerOpen = true;
+        setTimeout(() => {
+          const el = document.getElementById(`v${vNum}`);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 150);
+      }
+    }
+  });
 
   function handleVerseClick(verse: Verse) {
-    selectedVerse = selectedVerse === verse.number ? null : verse.number;
+    if (selectedVerse === verse.number && isDrawerOpen) {
+      isDrawerOpen = false;
+    } else {
+      selectedVerse = verse.number;
+      isDrawerOpen = true;
+    }
+  }
+
+  function handleCloseDrawer() {
+    isDrawerOpen = false;
+  }
+
+  function handleNoteSaved(savedNote: Note) {
+    const existingIndex = chapterNotes.findIndex((n) => n.id === savedNote.id);
+    if (existingIndex >= 0) {
+      chapterNotes[existingIndex] = savedNote;
+    } else {
+      chapterNotes = [...chapterNotes, savedNote];
+    }
+  }
+
+  function handleNoteDeleted(noteId: string) {
+    chapterNotes = chapterNotes.filter((n) => n.id !== noteId);
   }
 </script>
 
@@ -38,6 +123,11 @@
       <span class="text-xs px-2.5 py-1 rounded-full font-medium" style="background-color: var(--color-border); color: var(--color-muted)">
         {data.chapter.verses.length} versículos
       </span>
+      {#if chapterNotes.length > 0}
+        <span class="text-xs px-2.5 py-1 rounded-full font-medium text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800">
+          📝 {chapterNotes.length} {chapterNotes.length === 1 ? 'nota' : 'notas'}
+        </span>
+      {/if}
     </div>
 
     <!-- Top Prev / Next Navigation -->
@@ -74,6 +164,14 @@
     </div>
   </div>
 
+  <!-- Instruction banner for notes -->
+  <div class="px-4 py-2 rounded-xl text-xs flex items-center justify-between border" style="background-color: var(--color-surface); border-color: var(--color-border); color: var(--color-muted)">
+    <div class="flex items-center gap-2">
+      <span>💡</span>
+      <span>Dica: Clique em qualquer versículo para abrir suas anotações pessoais de estudo.</span>
+    </div>
+  </div>
+
   <!-- Verses Content -->
   <div
     class="p-6 sm:p-8 rounded-2xl border shadow-sm"
@@ -82,6 +180,7 @@
     <VerseList
       verses={data.chapter.verses}
       {selectedVerse}
+      {notesCountByVerse}
       onVerseClick={handleVerseClick}
     />
   </div>
@@ -113,3 +212,15 @@
     {/if}
   </div>
 </div>
+
+<!-- Slide-over Note Drawer -->
+<NoteDrawer
+  book={data.chapter.book}
+  chapterNumber={data.chapter.number}
+  verse={activeVerse}
+  notes={activeVerseNotes}
+  isOpen={isDrawerOpen}
+  onClose={handleCloseDrawer}
+  onNoteSaved={handleNoteSaved}
+  onNoteDeleted={handleNoteDeleted}
+/>

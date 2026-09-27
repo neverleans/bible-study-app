@@ -6,6 +6,7 @@ import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
 import { BibleModule } from './modules/bible/bible.module';
 import { SearchModule } from './modules/search/search.module';
+import { NotesModule } from './modules/notes/notes.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { SearchModule } from './modules/search/search.module';
     HealthModule,
     BibleModule,
     SearchModule,
+    NotesModule,
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
