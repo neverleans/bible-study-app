@@ -7,6 +7,7 @@ import { HealthModule } from './health/health.module';
 import { BibleModule } from './modules/bible/bible.module';
 import { SearchModule } from './modules/search/search.module';
 import { NotesModule } from './modules/notes/notes.module';
+import { AiModule } from './modules/ai/ai.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { NotesModule } from './modules/notes/notes.module';
     BibleModule,
     SearchModule,
     NotesModule,
+    AiModule,
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

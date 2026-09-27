@@ -19,6 +19,7 @@
     "db:seed": "ts-node src/database/seeds/index.ts"
   },
   "dependencies": {
+    "@google/genai": "^2.24.0",
     "@nestjs/bullmq": "^10.1.1",
     "@nestjs/common": "^10.3.8",
     "@nestjs/config": "^3.2.2",

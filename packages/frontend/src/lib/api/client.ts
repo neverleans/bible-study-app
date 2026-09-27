@@ -7,6 +7,9 @@ import type {
   CreateNotePayload,
   UpdateNotePayload,
   GetNotesParams,
+  ChapterAnalysisResult,
+  BookReflectionResult,
+  AiStatusResponse,
 } from '$types';
 import { getCurrentUserId } from '$stores/user';
 
@@ -124,6 +127,41 @@ export class ApiClient {
 
   async deleteNote(id: string): Promise<{ success: boolean }> {
     return this.delete<{ success: boolean }>(`/notes/${id}`);
+  }
+
+  // AI Endpoints
+  async analyzeChapter(bookAbbrev: string, chapterNumber: number): Promise<AiStatusResponse<ChapterAnalysisResult>> {
+    return this.post<AiStatusResponse<ChapterAnalysisResult>>('/ai/chapter', {
+      bookAbbrev,
+      chapterNumber,
+    });
+  }
+
+  async reflectBook(bookAbbrev: string): Promise<AiStatusResponse<BookReflectionResult>> {
+    return this.post<AiStatusResponse<BookReflectionResult>>('/ai/book', {
+      bookAbbrev,
+    });
+  }
+
+  async getAiStatus<T = ChapterAnalysisResult | BookReflectionResult>(jobId: string): Promise<AiStatusResponse<T>> {
+    return this.get<AiStatusResponse<T>>(`/ai/status/${jobId}`);
+  }
+
+  async pollAiJob<T = ChapterAnalysisResult | BookReflectionResult>(
+    jobId: string,
+    onProgress?: (status: string) => void,
+    maxAttempts: number = 30,
+    intervalMs: number = 1500,
+  ): Promise<AiStatusResponse<T>> {
+    for (let i = 0; i < maxAttempts; i++) {
+      const res = await this.getAiStatus<T>(jobId);
+      onProgress?.(res.status);
+      if (res.status === 'completed' || res.status === 'failed') {
+        return res;
+      }
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    }
+    throw new Error('Tempo limite excedido ao processar a análise com IA.');
   }
 }
 

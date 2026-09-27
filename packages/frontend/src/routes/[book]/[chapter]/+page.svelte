@@ -2,6 +2,7 @@
   import Breadcrumbs from '$components/bible/Breadcrumbs.svelte';
   import VerseList from '$components/bible/VerseList.svelte';
   import NoteDrawer from '$components/notes/NoteDrawer.svelte';
+  import ChapterAnalysisModal from '$components/ai/ChapterAnalysisModal.svelte';
   import { api } from '$api/client';
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
@@ -11,6 +12,7 @@
 
   let selectedVerse = $state<number | null>(null);
   let isDrawerOpen = $state(false);
+  let showAiModal = $state(false);
   let chapterNotes = $state<Note[]>([]);
   let isLoadingNotes = $state(false);
 
@@ -150,6 +152,15 @@
       >
         Todos Capítulos
       </a>
+      <button
+        onclick={() => (showAiModal = true)}
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-400 cursor-pointer"
+        style="background-color: var(--color-surface); border-color: var(--color-border)"
+        title="Ver Análise Exegética e Teológica do Capítulo com IA"
+      >
+        <span>✨</span>
+        <span>Análise IA</span>
+      </button>
       {#if data.chapter.nextChapter}
         <a
           href="/{data.chapter.nextChapter.bookAbbrev}/{data.chapter.nextChapter.chapterNumber}"
@@ -224,3 +235,12 @@
   onNoteSaved={handleNoteSaved}
   onNoteDeleted={handleNoteDeleted}
 />
+
+<!-- Chapter AI Analysis Modal -->
+<ChapterAnalysisModal
+  book={data.chapter.book}
+  chapterNumber={data.chapter.number}
+  isOpen={showAiModal}
+  onClose={() => (showAiModal = false)}
+/>
+
