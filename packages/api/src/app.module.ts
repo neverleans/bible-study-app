@@ -5,6 +5,7 @@ import { validate } from './config/env.validation';
 import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
 import { BibleModule } from './modules/bible/bible.module';
+import { SearchModule } from './modules/search/search.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { BibleModule } from './modules/bible/bible.module';
     DatabaseModule,
     HealthModule,
     BibleModule,
+    SearchModule,
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

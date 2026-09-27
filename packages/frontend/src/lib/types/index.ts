@@ -25,6 +25,33 @@ export interface ChapterResponse {
   nextChapter: ChapterNavigation | null;
 }
 
+export interface SearchResultItem {
+  verseId: number;
+  bookName: string;
+  bookAbbrev: string;
+  testament: string;
+  chapterNumber: number;
+  verseNumber: number;
+  text: string;
+  highlight: string;
+}
+
+export interface SearchResponse {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  results: SearchResultItem[];
+}
+
+export interface SearchParams {
+  q: string;
+  page?: number;
+  limit?: number;
+  testament?: 'OT' | 'NT';
+  book?: string;
+}
+
 export interface HealthResponse {
   status: string;
   info: Record<string, unknown>;

@@ -27,16 +27,25 @@
 
 <div class="min-h-screen" style="background-color: var(--color-bg); color: var(--color-text)">
   <header class="border-b px-6 py-4 flex items-center justify-between" style="border-color: var(--color-border)">
-    <a href="/" class="text-xl font-bold" style="color: var(--color-primary)">
-      📖 Estudo Bíblico
+    <a href="/" class="text-xl font-bold flex items-center gap-2" style="color: var(--color-primary)">
+      <span>📖</span>
+      <span>Estudo Bíblico</span>
     </a>
-    <nav class="flex items-center gap-4">
-      <a href="/" class="hover:underline" style="color: var(--color-muted)">Início</a>
+    <nav class="flex items-center gap-3">
+      <a href="/" class="text-sm hover:underline" style="color: var(--color-muted)">Início</a>
+      <a
+        href="/search"
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors hover:border-blue-500 cursor-pointer"
+        style="background-color: var(--color-surface); border-color: var(--color-border); color: var(--color-text)"
+      >
+        <span>🔍</span>
+        <span>Buscar</span>
+      </a>
       <button
         onclick={toggleTheme}
         class="p-2 rounded-lg transition-colors cursor-pointer"
         style="background-color: var(--color-surface)"
-        aria-label="Toggle theme"
+        aria-label="Alternar tema claro/escuro"
       >
         {isDark ? '☀️' : '🌙'}
       </button>
