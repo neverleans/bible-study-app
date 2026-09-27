@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HealthCheckService, MemoryHealthIndicator, DiskHealthIndicator } from '@nestjs/terminus';
 import { HealthController } from './health.controller';
-import { PrismaHealthIndicator } from './prisma.health';
+import { DatabaseHealthIndicator } from './database.health';
 
 describe('HealthController', () => {
   let controller: HealthController;
@@ -18,7 +18,7 @@ describe('HealthController', () => {
     }),
   };
 
-  const mockPrismaHealth = {
+  const mockDatabaseHealth = {
     isHealthy: jest.fn().mockResolvedValue({ database: { status: 'up' } }),
   };
 
@@ -35,7 +35,7 @@ describe('HealthController', () => {
       controllers: [HealthController],
       providers: [
         { provide: HealthCheckService, useValue: mockHealthCheckService },
-        { provide: PrismaHealthIndicator, useValue: mockPrismaHealth },
+        { provide: DatabaseHealthIndicator, useValue: mockDatabaseHealth },
         { provide: MemoryHealthIndicator, useValue: mockMemory },
         { provide: DiskHealthIndicator, useValue: mockDisk },
       ],

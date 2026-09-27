@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { validate } from './config/env.validation';
-import { PrismaModule } from './database/prisma.module';
+import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
 import { BibleModule } from './modules/bible/bible.module';
 
@@ -12,7 +12,7 @@ import { BibleModule } from './modules/bible/bible.module';
       isGlobal: true,
       validate,
     }),
-    PrismaModule,
+    DatabaseModule,
     HealthModule,
     BibleModule,
     BullModule.forRootAsync({

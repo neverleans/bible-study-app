@@ -1,21 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { HealthIndicator, HealthIndicatorResult, HealthCheckError } from '@nestjs/terminus';
-import { PrismaService } from '../database/prisma.service';
+import { sql } from 'drizzle-orm';
+import { DRIZZLE, DrizzleDb } from '../database/database.module';
 
 @Injectable()
-export class PrismaHealthIndicator extends HealthIndicator {
-  constructor(private prisma: PrismaService) {
+export class DatabaseHealthIndicator extends HealthIndicator {
+  constructor(@Inject(DRIZZLE) private db: DrizzleDb) {
     super();
   }
 
   async isHealthy(key: string): Promise<HealthIndicatorResult> {
     try {
-      await this.prisma.$queryRaw`SELECT 1`;
+      await this.db.execute(sql`SELECT 1`);
       return this.getStatus(key, true);
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
       throw new HealthCheckError(
-        'Prisma check failed',
+        'Database check failed',
         this.getStatus(key, false, { message }),
       );
     }

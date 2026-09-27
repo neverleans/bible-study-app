@@ -1,12 +1,12 @@
 import { Controller, Get } from '@nestjs/common';
 import { HealthCheck, HealthCheckService, MemoryHealthIndicator, DiskHealthIndicator } from '@nestjs/terminus';
-import { PrismaHealthIndicator } from './prisma.health';
+import { DatabaseHealthIndicator } from './database.health';
 
 @Controller('health')
 export class HealthController {
   constructor(
     private health: HealthCheckService,
-    private db: PrismaHealthIndicator,
+    private db: DatabaseHealthIndicator,
     private memory: MemoryHealthIndicator,
     private disk: DiskHealthIndicator,
   ) {}
@@ -17,7 +17,7 @@ export class HealthController {
     const diskPath = process.platform === 'win32' ? 'C:\\' : '/';
     return this.health.check([
       () => this.db.isHealthy('database'),
-      () => this.memory.checkHeap('memory_heap', 300 * 1024 * 1024),
+      () => this.memory.checkHeap('memory_heap', 600 * 1024 * 1024),
       () => this.disk.checkStorage('storage', { path: diskPath, thresholdPercent: 0.95 }),
     ]);
   }

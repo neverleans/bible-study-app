@@ -11,6 +11,7 @@
 - [003 - PostgreSQL](decisions/003-postgresql.md)
 - [004 - Redis + BullMQ](decisions/004-redis-bullmq.md)
 - [005 - All TypeScript](decisions/005-all-typescript.md)
+- [006 - Drizzle ORM & RLS](decisions/006-drizzle-orm-rls.md)
 
 ## Testing
 - [Testing Strategy](testing/README.md)
