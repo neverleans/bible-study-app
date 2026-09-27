@@ -10,6 +10,7 @@ import type {
   ChapterAnalysisResult,
   BookReflectionResult,
   AiStatusResponse,
+  StudyAid,
 } from '$types';
 import { getCurrentUserId } from '$stores/user';
 
@@ -162,6 +163,16 @@ export class ApiClient {
       await new Promise((resolve) => setTimeout(resolve, intervalMs));
     }
     throw new Error('Tempo limite excedido ao processar a análise com IA.');
+  }
+
+  // Study Aids Endpoints
+  async getStudyAidsByBook(bookAbbrev: string, type?: string): Promise<StudyAid[]> {
+    const query = type ? `?type=${type}` : '';
+    return this.get<StudyAid[]>(`/study-aids/book/${bookAbbrev}${query}`);
+  }
+
+  async getStudyAidsByChapter(bookAbbrev: string, chapterNumber: number): Promise<StudyAid[]> {
+    return this.get<StudyAid[]>(`/study-aids/chapter/${bookAbbrev}/${chapterNumber}`);
   }
 }
 

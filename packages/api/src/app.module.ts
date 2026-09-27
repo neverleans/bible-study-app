@@ -8,6 +8,7 @@ import { BibleModule } from './modules/bible/bible.module';
 import { SearchModule } from './modules/search/search.module';
 import { NotesModule } from './modules/notes/notes.module';
 import { AiModule } from './modules/ai/ai.module';
+import { StudyAidsModule } from './modules/study-aids/study-aids.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AiModule } from './modules/ai/ai.module';
     SearchModule,
     NotesModule,
     AiModule,
+    StudyAidsModule,
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

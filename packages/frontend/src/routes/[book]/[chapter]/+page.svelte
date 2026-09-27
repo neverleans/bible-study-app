@@ -3,10 +3,11 @@
   import VerseList from '$components/bible/VerseList.svelte';
   import NoteDrawer from '$components/notes/NoteDrawer.svelte';
   import ChapterAnalysisModal from '$components/ai/ChapterAnalysisModal.svelte';
+  import StudyAidsPanel from '$components/bible/StudyAidsPanel.svelte';
   import { api } from '$api/client';
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
-  import type { Verse, Note } from '$types';
+  import type { Verse, Note, StudyAid } from '$types';
 
   let { data }: { data: PageData } = $props();
 
@@ -14,6 +15,7 @@
   let isDrawerOpen = $state(false);
   let showAiModal = $state(false);
   let chapterNotes = $state<Note[]>([]);
+  let chapterStudyAids = $state<StudyAid[]>([]);
   let isLoadingNotes = $state(false);
 
   // Derived map of note counts per verse
@@ -50,11 +52,23 @@
     }
   }
 
+  async function loadChapterStudyAids() {
+    try {
+      chapterStudyAids = await api.getStudyAidsByChapter(
+        data.chapter.book.abbrev,
+        data.chapter.number,
+      );
+    } catch (err) {
+      console.error('Falha ao carregar recursos de estudo:', err);
+    }
+  }
+
   $effect(() => {
     if (data.chapter?.book?.abbrev && data.chapter?.number) {
       selectedVerse = null;
       isDrawerOpen = false;
       loadChapterNotes();
+      loadChapterStudyAids();
     }
   });
 
@@ -182,6 +196,11 @@
       <span>Dica: Clique em qualquer versículo para abrir suas anotações pessoais de estudo.</span>
     </div>
   </div>
+
+  <!-- Curated Study Aids (Summaries, Key Verses, Cross-References) -->
+  {#if chapterStudyAids.length > 0}
+    <StudyAidsPanel studyAids={chapterStudyAids} />
+  {/if}
 
   <!-- Verses Content -->
   <div

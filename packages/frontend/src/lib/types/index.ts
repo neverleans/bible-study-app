@@ -136,4 +136,35 @@ export interface AiStatusResponse<T = ChapterAnalysisResult | BookReflectionResu
   error?: string;
 }
 
+export interface StudyAidMetadata {
+  chapterNumber?: number;
+  verseNumber?: number;
+  reference?: string;
+  commentary?: string;
+  title?: string;
+  author?: string;
+  date?: string;
+  audience?: string;
+  keyThemes?: string[];
+  sourceReference?: string;
+  targetBookAbbrev?: string;
+  targetBookName?: string;
+  targetChapter?: number;
+  targetVerse?: number;
+  targetReference?: string;
+  [key: string]: unknown;
+}
+
+export interface StudyAid {
+  id: number;
+  bookId: number;
+  bookAbbrev: string;
+  bookName: string;
+  type: 'summary' | 'key_verse' | 'cross_ref' | 'context' | string;
+  content: string;
+  metadata: StudyAidMetadata;
+  createdAt: string;
+}
+
+
 
