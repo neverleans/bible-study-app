@@ -1,0 +1,13 @@
+node_modules
+dist
+build
+.svelte-kit
+.turbo
+.env
+.env.local
+.env.*
+!.env.example
+coverage
+playwright-report
+test-results
+_archive/

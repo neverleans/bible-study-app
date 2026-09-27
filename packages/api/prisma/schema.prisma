@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String?   @map("password_hash")
+  name         String?
+  provider     String    @default("local") // local | google
+  preferences  Json?     @default("{}")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  notes        Note[]
+
+  @@map("users")
+}
+
+model Book {
+  id           Int        @id @default(autoincrement())
+  abbrev       String     @unique // gn, ex, etc.
+  name         String     // Gênesis, Êxodo, etc.
+  testament    String     // OT | NT
+  chapterCount Int        @map("chapter_count")
+  order        Int
+  chapters     Chapter[]
+  notes        Note[]
+  studyAids    StudyAid[]
+  aiCache      AiCache[]
+
+  @@map("books")
+}
+
+model Chapter {
+  id       Int      @id @default(autoincrement())
+  bookId   Int      @map("book_id")
+  number   Int
+  verses   String[]
+  book     Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, number])
+  @@map("chapters")
+}
+
+model Note {
+  id            String   @id @default(uuid())
+  userId        String?  @map("user_id")
+  bookId        Int      @map("book_id")
+  chapterNumber Int      @map("chapter_number")
+  verseNumber   Int      @map("verse_number")
+  content       String   @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user          User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book          Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([bookId, chapterNumber])
+  @@map("notes")
+}
+
+model StudyAid {
+  id        Int      @id @default(autoincrement())
+  bookId    Int      @map("book_id")
+  type      String   // summary | key_verse | cross_ref | context
+  content   String   @db.Text
+  metadata  Json?    @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([bookId, type])
+  @@map("study_aids")
+}
+
+model AiCache {
+  id            String    @id @default(uuid())
+  bookId        Int       @map("book_id")
+  chapterNumber Int?      @map("chapter_number")
+  analysisType  String    @map("analysis_type") // chapter_analysis | book_reflection
+  promptHash    String    @unique @map("prompt_hash")
+  response      String    @db.Text
+  metadata      Json?     @default("{}")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  expiresAt     DateTime? @map("expires_at")
+
+  book          Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([bookId, chapterNumber])
+  @@map("ai_cache")
+}
