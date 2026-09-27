@@ -1,13 +1,23 @@
 <script lang="ts">
   import { api } from '$api/client';
   import { onMount } from 'svelte';
-  import { currentUserId, setUserId } from '$stores/user';
+  import {
+    currentUser,
+    isAuthenticated,
+    showAuthModal,
+    getGuestNotes,
+    updateGuestNote,
+    deleteGuestNote,
+    syncGuestNotesToCloud,
+  } from '$stores/auth';
   import type { Note, Book } from '$types';
 
   let notes = $state<Note[]>([]);
   let books = $state<Book[]>([]);
   let isLoading = $state(true);
   let errorMessage = $state<string | null>(null);
+  let syncMessage = $state<string | null>(null);
+  let isSyncing = $state(false);
 
   // Filters
   let selectedBook = $state<string>('all');
@@ -18,12 +28,11 @@
   let editContent = $state('');
   let isSaving = $state(false);
 
-  // User Switcher (demonstrating RLS isolation)
-  let showUserModal = $state(false);
-  let customUserId = $state('');
+  let guestNotesCount = $derived(
+    notes.filter((n) => n.id.startsWith('guest-')).length
+  );
 
   onMount(async () => {
-    customUserId = $currentUserId;
     await loadData();
   });
 
@@ -31,16 +40,50 @@
     isLoading = true;
     errorMessage = null;
     try {
-      const [fetchedNotes, fetchedBooks] = await Promise.all([
-        api.getNotes(),
-        api.getBooks(),
-      ]);
-      notes = fetchedNotes;
+      const fetchedBooks = await api.getBooks();
       books = fetchedBooks;
+
+      const guestNotes = getGuestNotes();
+      let serverNotes: Note[] = [];
+
+      if ($isAuthenticated) {
+        try {
+          serverNotes = await api.getNotes();
+        } catch (e) {
+          console.warn('Falha ao carregar notas do servidor:', e);
+        }
+      }
+
+      // Merge notes avoiding id duplicates
+      const map = new Map<string, Note>();
+      for (const n of guestNotes) map.set(n.id, n);
+      for (const n of serverNotes) map.set(n.id, n);
+      notes = Array.from(map.values());
     } catch (err: unknown) {
       errorMessage = err instanceof Error ? err.message : 'Falha ao carregar anotações';
     } finally {
       isLoading = false;
+    }
+  }
+
+  // React to login/logout
+  $effect(() => {
+    const _auth = $isAuthenticated;
+    loadData();
+  });
+
+  async function handleSyncGuestNotes() {
+    if (isSyncing) return;
+    isSyncing = true;
+    syncMessage = null;
+    try {
+      const count = await syncGuestNotesToCloud();
+      syncMessage = `${count} anotação(ões) sincronizada(s) com sucesso para sua conta!`;
+      await loadData();
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Falha ao sincronizar anotações.');
+    } finally {
+      isSyncing = false;
     }
   }
 
@@ -69,7 +112,13 @@
     if (!editContent.trim() || isSaving) return;
     isSaving = true;
     try {
-      const updated = await api.updateNote(noteId, { content: editContent.trim() });
+      let updated: Note;
+      if (noteId.startsWith('guest-') || !$isAuthenticated) {
+        updated = updateGuestNote(noteId, { content: editContent.trim() });
+      } else {
+        updated = await api.updateNote(noteId, { content: editContent.trim() });
+      }
+
       const index = notes.findIndex((n) => n.id === noteId);
       if (index >= 0) {
         notes[index] = updated;
@@ -86,7 +135,11 @@
   async function handleDeleteNote(noteId: string) {
     if (!confirm('Deseja realmente excluir esta anotação?')) return;
     try {
-      await api.deleteNote(noteId);
+      if (noteId.startsWith('guest-') || !$isAuthenticated) {
+        deleteGuestNote(noteId);
+      } else {
+        await api.deleteNote(noteId);
+      }
       notes = notes.filter((n) => n.id !== noteId);
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Erro ao excluir nota');
@@ -106,13 +159,6 @@
       return iso;
     }
   }
-
-  function applyUserChange(userIdToApply: string) {
-    if (!userIdToApply.trim()) return;
-    setUserId(userIdToApply.trim());
-    showUserModal = false;
-    loadData();
-  }
 </script>
 
 <svelte:head>
@@ -128,31 +174,86 @@
         <span>Minhas Anotações</span>
       </h1>
       <p class="text-sm mt-1" style="color: var(--color-muted)">
-        Anotações e reflexões pessoais protegidas por Row-Level Security (RLS) no PostgreSQL.
+        Anotações e reflexões de estudo com suporte local (modo visitante) e sincronização segura com PostgreSQL RLS.
       </p>
     </div>
 
     <!-- Active User & RLS Badge -->
     <div class="flex items-center gap-2">
-      <div
-        class="flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs"
-        style="background-color: var(--color-surface); border-color: var(--color-border)"
-      >
-        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
-        <span style="color: var(--color-muted)">Usuário:</span>
-        <span class="font-mono font-medium max-w-[120px] truncate" title={$currentUserId}>
-          {$currentUserId}
-        </span>
-        <button
-          onclick={() => (showUserModal = true)}
-          class="text-xs px-2 py-0.5 rounded border hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors"
-          style="border-color: var(--color-border); color: var(--color-primary)"
+      {#if $isAuthenticated && $currentUser}
+        <div
+          class="flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs"
+          style="background-color: var(--color-surface); border-color: var(--color-border)"
         >
-          Trocar
-        </button>
-      </div>
+          <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span style="color: var(--color-muted)">Conta:</span>
+          <span class="font-medium text-emerald-600 dark:text-emerald-400 max-w-[140px] truncate" title={$currentUser.email}>
+            {$currentUser.name || $currentUser.email}
+          </span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 font-bold">
+            RLS Ativo
+          </span>
+        </div>
+      {:else}
+        <div
+          class="flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs"
+          style="background-color: var(--color-surface); border-color: var(--color-border)"
+        >
+          <span class="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
+          <span class="font-medium text-amber-700 dark:text-amber-400">Modo Visitante</span>
+          <button
+            onclick={() => showAuthModal.set(true)}
+            class="text-xs px-2.5 py-1 rounded-lg text-white bg-blue-600 hover:bg-blue-700 font-semibold cursor-pointer transition-colors"
+          >
+            Entrar / Criar Conta
+          </button>
+        </div>
+      {/if}
     </div>
   </div>
+
+  <!-- Guest Mode Explanation Banner -->
+  {#if !$isAuthenticated}
+    <div class="p-4 rounded-2xl border bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">💡</span>
+        <div>
+          <strong class="text-sm block">Você está no Modo Visitante</strong>
+          <span>Suas anotações ficam salvas no seu navegador. Para acessá-las de qualquer lugar com isolamento criptográfico no PostgreSQL (RLS), crie sua conta gratuita.</span>
+        </div>
+      </div>
+      <button
+        onclick={() => showAuthModal.set(true)}
+        class="whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 cursor-pointer shadow-xs"
+      >
+        Entrar ou Cadastrar
+      </button>
+    </div>
+  {:else if guestNotesCount > 0}
+    <!-- Sync Guest Notes Banner when Logged In -->
+    <div class="p-4 rounded-2xl border bg-blue-50 dark:bg-blue-950/40 border-blue-300 dark:border-blue-800 text-blue-900 dark:text-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">🔄</span>
+        <div>
+          <strong class="text-sm block">Anotações locais não sincronizadas ({guestNotesCount})</strong>
+          <span>Detectamos {guestNotesCount} anotação(ões) feitas anteriormente neste aparelho sem login. Sincronize-as com a sua conta.</span>
+        </div>
+      </div>
+      <button
+        onclick={handleSyncGuestNotes}
+        disabled={isSyncing}
+        class="whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 cursor-pointer shadow-xs disabled:opacity-50"
+      >
+        {isSyncing ? 'Sincronizando...' : 'Sincronizar com Nuvem'}
+      </button>
+    </div>
+  {/if}
+
+  {#if syncMessage}
+    <div class="p-3 rounded-xl text-xs bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+      {syncMessage}
+    </div>
+  {/if}
 
   <!-- Search & Filter Controls -->
   <div
@@ -250,14 +351,27 @@
           <div>
             <!-- Note Header: Reference & Link -->
             <div class="flex items-center justify-between pb-3 mb-3 border-b" style="border-color: var(--color-border)">
-              <a
-                href="/{note.bookAbbrev}/{note.chapterNumber}#v{note.verseNumber}"
-                class="font-bold text-base hover:underline flex items-center gap-1.5 group"
-                style="color: var(--color-primary)"
-              >
-                <span>{note.bookName} {note.chapterNumber}:{note.verseNumber}</span>
-                <span class="text-xs transition-transform group-hover:translate-x-0.5">↗</span>
-              </a>
+              <div class="flex items-center gap-2">
+                <a
+                  href="/{note.bookAbbrev}/{note.chapterNumber}#v{note.verseNumber}"
+                  class="font-bold text-base hover:underline flex items-center gap-1.5 group"
+                  style="color: var(--color-primary)"
+                >
+                  <span>{note.bookName} {note.chapterNumber}:{note.verseNumber}</span>
+                  <span class="text-xs transition-transform group-hover:translate-x-0.5">↗</span>
+                </a>
+
+                {#if note.id.startsWith('guest-')}
+                  <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300">
+                    Local
+                  </span>
+                {:else}
+                  <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300">
+                    Nuvem RLS
+                  </span>
+                {/if}
+              </div>
+
               <span class="text-xs" style="color: var(--color-muted)">
                 {formatDate(note.updatedAt || note.createdAt)}
               </span>
@@ -328,75 +442,3 @@
     </div>
   {/if}
 </div>
-
-<!-- Switch User Modal (To demo RLS Tenant Isolation) -->
-{#if showUserModal}
-  <div
-    role="button"
-    tabindex="0"
-    class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs"
-    onclick={() => (showUserModal = false)}
-    onkeydown={(e) => e.key === 'Escape' && (showUserModal = false)}
-  >
-    <div
-      role="dialog"
-      aria-modal="true"
-      tabindex="-1"
-      class="max-w-md w-full p-6 rounded-2xl border shadow-xl space-y-4"
-      style="background-color: var(--color-bg); border-color: var(--color-border); color: var(--color-text)"
-      onclick={(e) => e.stopPropagation()}
-      onkeydown={(e) => e.stopPropagation()}
-    >
-      <div class="flex items-center justify-between">
-        <h3 class="font-bold text-lg">Trocar Identificador de Usuário (RLS)</h3>
-        <button
-          onclick={() => (showUserModal = false)}
-          class="p-1 rounded-lg border text-xs cursor-pointer hover:opacity-80"
-          style="border-color: var(--color-border)"
-        >
-          ✕
-        </button>
-      </div>
-
-      <p class="text-xs leading-relaxed" style="color: var(--color-muted)">
-        O backend utiliza <strong>PostgreSQL Row-Level Security</strong> via <code>app.current_user_id</code>. Ao trocar seu ID aqui, o banco de dados filtrará as notas para exibir apenas as pertencentes à nova identidade.
-      </p>
-
-      <div class="space-y-2">
-        <label for="custom-user-input" class="text-xs font-semibold block" style="color: var(--color-text)">
-          ID do Usuário:
-        </label>
-        <input
-          id="custom-user-input"
-          type="text"
-          bind:value={customUserId}
-          class="w-full px-3 py-2 rounded-xl border text-sm font-mono focus:outline-none focus:border-blue-500"
-          style="background-color: var(--color-surface); border-color: var(--color-border); color: var(--color-text)"
-        />
-      </div>
-
-      <div class="flex items-center justify-end gap-2 pt-2">
-        <button
-          onclick={() => applyUserChange('user-teste-1')}
-          class="px-3 py-1.5 text-xs rounded-lg border cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
-          style="border-color: var(--color-border)"
-        >
-          Usuário 1
-        </button>
-        <button
-          onclick={() => applyUserChange('user-teste-2')}
-          class="px-3 py-1.5 text-xs rounded-lg border cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
-          style="border-color: var(--color-border)"
-        >
-          Usuário 2
-        </button>
-        <button
-          onclick={() => applyUserChange(customUserId)}
-          class="px-4 py-1.5 text-xs font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
-        >
-          Confirmar
-        </button>
-      </div>
-    </div>
-  </div>
-{/if}

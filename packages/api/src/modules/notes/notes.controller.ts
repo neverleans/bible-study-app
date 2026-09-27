@@ -7,21 +7,25 @@ import {
   Body,
   Param,
   Query,
+  UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiHeader, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiHeader, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { NotesService } from './notes.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { NoteResponseDto } from './dto/note-response.dto';
 import { CurrentUserId } from '../../common/decorators/current-user-id.decorator';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 
 @ApiTags('notes')
+@ApiBearerAuth()
 @ApiHeader({
   name: 'x-user-id',
   required: false,
-  description: 'ID do usuário para isolamento estrito via PostgreSQL Row-Level Security (RLS)',
+  description: 'ID do usuário para isolamento estrito via PostgreSQL Row-Level Security (RLS) quando não autenticado por JWT',
 })
+@UseGuards(OptionalJwtAuthGuard)
 @Controller('notes')
 export class NotesController {
   constructor(private readonly notesService: NotesService) {}

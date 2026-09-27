@@ -166,5 +166,23 @@ export interface StudyAid {
   createdAt: string;
 }
 
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  createdAt: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface GuestNote extends Note {
+  isGuest?: boolean;
+}
+
 
 

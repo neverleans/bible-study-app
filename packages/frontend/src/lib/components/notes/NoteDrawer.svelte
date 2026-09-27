@@ -1,5 +1,12 @@
 <script lang="ts">
   import { api } from '$api/client';
+  import {
+    isAuthenticated,
+    showAuthModal,
+    createGuestNote,
+    updateGuestNote,
+    deleteGuestNote,
+  } from '$stores/auth';
   import type { Verse, Note, Book } from '$types';
 
   let {
@@ -34,12 +41,25 @@
     isSaving = true;
     errorMessage = null;
     try {
-      const created = await api.createNote({
-        bookAbbrev: book.abbrev,
-        chapterNumber,
-        verseNumber: verse.number,
-        content: newNoteContent.trim(),
-      });
+      let created: Note;
+      if ($isAuthenticated) {
+        created = await api.createNote({
+          bookAbbrev: book.abbrev,
+          chapterNumber,
+          verseNumber: verse.number,
+          content: newNoteContent.trim(),
+        });
+      } else {
+        created = createGuestNote(
+          {
+            bookAbbrev: book.abbrev,
+            chapterNumber,
+            verseNumber: verse.number,
+            content: newNoteContent.trim(),
+          },
+          book.name,
+        );
+      }
       newNoteContent = '';
       onNoteSaved(created);
     } catch (err: unknown) {
@@ -65,9 +85,16 @@
     isSaving = true;
     errorMessage = null;
     try {
-      const updated = await api.updateNote(noteId, {
-        content: editContent.trim(),
-      });
+      let updated: Note;
+      if (noteId.startsWith('guest-') || !$isAuthenticated) {
+        updated = updateGuestNote(noteId, {
+          content: editContent.trim(),
+        });
+      } else {
+        updated = await api.updateNote(noteId, {
+          content: editContent.trim(),
+        });
+      }
       editingNoteId = null;
       editContent = '';
       onNoteSaved(updated);
@@ -84,7 +111,11 @@
     isSaving = true;
     errorMessage = null;
     try {
-      await api.deleteNote(noteId);
+      if (noteId.startsWith('guest-') || !$isAuthenticated) {
+        deleteGuestNote(noteId);
+      } else {
+        await api.deleteNote(noteId);
+      }
       onNoteDeleted(noteId);
     } catch (err: unknown) {
       errorMessage = err instanceof Error ? err.message : 'Falha ao excluir nota';
@@ -135,7 +166,11 @@
           {book.name} {chapterNumber}:{verse.number}
         </h2>
         <span class="text-xs" style="color: var(--color-muted)">
-          Anotações pessoais de estudo (protegidas por RLS)
+          {#if $isAuthenticated}
+            Anotações protegidas por PostgreSQL RLS
+          {:else}
+            Anotações de Estudo (Modo Visitante)
+          {/if}
         </span>
       </div>
       <button
@@ -152,6 +187,27 @@
     <div class="p-4 border-b text-sm italic font-serif leading-relaxed" style="background-color: var(--color-surface); border-color: var(--color-border); color: var(--color-muted)">
       "{verse.text}"
     </div>
+
+    <!-- Guest Mode Notice Banner -->
+    {#if !$isAuthenticated}
+      <div class="mx-4 mt-3 p-3 rounded-xl border bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 flex flex-col gap-1.5">
+        <div class="flex items-center justify-between">
+          <span class="font-bold flex items-center gap-1">
+            <span>🟡</span>
+            <span>Modo Visitante Ativo</span>
+          </span>
+          <button
+            onclick={() => showAuthModal.set(true)}
+            class="text-blue-600 dark:text-blue-400 font-semibold hover:underline cursor-pointer"
+          >
+            Entrar / Sincronizar →
+          </button>
+        </div>
+        <p class="opacity-90 leading-relaxed">
+          Suas anotações estão salvas apenas neste navegador. Crie uma conta gratuita para salvá-las na nuvem com PostgreSQL e segurança RLS.
+        </p>
+      </div>
+    {/if}
 
     <!-- Error alert -->
     {#if errorMessage}
@@ -201,6 +257,17 @@
               </div>
             {:else}
               <!-- View mode -->
+              <div class="flex items-center justify-between">
+                {#if note.id.startsWith('guest-')}
+                  <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300">
+                    Local (Visitante)
+                  </span>
+                {:else}
+                  <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300">
+                    Nuvem (RLS)
+                  </span>
+                {/if}
+              </div>
               <p class="text-sm whitespace-pre-wrap leading-relaxed" style="color: var(--color-text)">
                 {note.content}
               </p>
@@ -245,7 +312,16 @@
         class="w-full p-3 rounded-xl border text-sm resize-none focus:outline-none focus:border-blue-500"
         style="background-color: var(--color-bg); border-color: var(--color-border); color: var(--color-text)"
       ></textarea>
-      <div class="flex justify-end">
+      <div class="flex items-center justify-between">
+        {#if !$isAuthenticated}
+          <span class="text-[11px]" style="color: var(--color-muted)">
+            Salva localmente neste aparelho
+          </span>
+        {:else}
+          <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+            Salva com isolamento RLS
+          </span>
+        {/if}
         <button
           onclick={handleCreateNote}
           disabled={isSaving || !newNoteContent.trim()}

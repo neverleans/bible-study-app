@@ -9,6 +9,9 @@ import { SearchModule } from './modules/search/search.module';
 import { NotesModule } from './modules/notes/notes.module';
 import { AiModule } from './modules/ai/ai.module';
 import { StudyAidsModule } from './modules/study-aids/study-aids.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -23,6 +26,17 @@ import { StudyAidsModule } from './modules/study-aids/study-aids.module';
     NotesModule,
     AiModule,
     StudyAidsModule,
+    AuthModule,
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => [
+        {
+          ttl: 60000,
+          limit: config.get('NODE_ENV') === 'test' ? 10000 : 120,
+        },
+      ],
+    }),
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -33,6 +47,12 @@ import { StudyAidsModule } from './modules/study-aids/study-aids.module';
         },
       }),
     }),
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

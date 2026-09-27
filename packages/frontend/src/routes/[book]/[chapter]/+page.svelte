@@ -6,6 +6,7 @@
   import StudyAidsPanel from '$components/bible/StudyAidsPanel.svelte';
   import { api } from '$api/client';
   import { onMount } from 'svelte';
+  import { getGuestNotes, isAuthenticated } from '$stores/auth';
   import type { PageData } from './$types';
   import type { Verse, Note, StudyAid } from '$types';
 
@@ -41,10 +42,28 @@
   async function loadChapterNotes() {
     isLoadingNotes = true;
     try {
-      chapterNotes = await api.getNotes({
+      const guestNotes = getGuestNotes({
         book: data.chapter.book.abbrev,
         chapter: data.chapter.number,
       });
+
+      let serverNotes: Note[] = [];
+      if ($isAuthenticated) {
+        try {
+          serverNotes = await api.getNotes({
+            book: data.chapter.book.abbrev,
+            chapter: data.chapter.number,
+          });
+        } catch (e) {
+          console.warn('Falha ao carregar notas da nuvem:', e);
+        }
+      }
+
+      // Merge avoiding duplicate ids
+      const noteMap = new Map<string, Note>();
+      for (const n of guestNotes) noteMap.set(n.id, n);
+      for (const n of serverNotes) noteMap.set(n.id, n);
+      chapterNotes = Array.from(noteMap.values());
     } catch (err) {
       console.error('Falha ao carregar notas:', err);
     } finally {
@@ -65,6 +84,7 @@
 
   $effect(() => {
     if (data.chapter?.book?.abbrev && data.chapter?.number) {
+      const _auth = $isAuthenticated;
       selectedVerse = null;
       isDrawerOpen = false;
       loadChapterNotes();

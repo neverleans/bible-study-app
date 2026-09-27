@@ -11,6 +11,8 @@ import type {
   BookReflectionResult,
   AiStatusResponse,
   StudyAid,
+  User,
+  AuthResponse,
 } from '$types';
 import { getCurrentUserId } from '$stores/user';
 
@@ -24,11 +26,35 @@ export class ApiClient {
   }
 
   private getHeaders(customHeaders: Record<string, string> = {}): Record<string, string> {
-    return {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'x-user-id': getCurrentUserId(),
       ...customHeaders,
     };
+
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('biblia_access_token');
+      if (token && !headers['Authorization']) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+
+    return headers;
+  }
+
+  private async handleResponseError(res: Response): Promise<never> {
+    let errMessage = `API error: ${res.status} ${res.statusText}`;
+    try {
+      const errorBody = await res.json();
+      if (errorBody?.message) {
+        errMessage = Array.isArray(errorBody.message)
+          ? errorBody.message.join(', ')
+          : errorBody.message;
+      }
+    } catch {
+      // Keep default message
+    }
+    throw new Error(errMessage);
   }
 
   async get<T>(path: string, customHeaders?: Record<string, string>): Promise<T> {
@@ -36,7 +62,7 @@ export class ApiClient {
       headers: this.getHeaders(customHeaders),
     });
     if (!res.ok) {
-      throw new Error(`API error: ${res.status} ${res.statusText}`);
+      await this.handleResponseError(res);
     }
     return res.json();
   }
@@ -48,7 +74,7 @@ export class ApiClient {
       body: JSON.stringify(body),
     });
     if (!res.ok) {
-      throw new Error(`API error: ${res.status} ${res.statusText}`);
+      await this.handleResponseError(res);
     }
     return res.json();
   }
@@ -60,7 +86,7 @@ export class ApiClient {
       body: JSON.stringify(body),
     });
     if (!res.ok) {
-      throw new Error(`API error: ${res.status} ${res.statusText}`);
+      await this.handleResponseError(res);
     }
     return res.json();
   }
@@ -71,7 +97,7 @@ export class ApiClient {
       headers: this.getHeaders(customHeaders),
     });
     if (!res.ok) {
-      throw new Error(`API error: ${res.status} ${res.statusText}`);
+      await this.handleResponseError(res);
     }
     const contentType = res.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
@@ -173,6 +199,23 @@ export class ApiClient {
 
   async getStudyAidsByChapter(bookAbbrev: string, chapterNumber: number): Promise<StudyAid[]> {
     return this.get<StudyAid[]>(`/study-aids/chapter/${bookAbbrev}/${chapterNumber}`);
+  }
+
+  // Auth Endpoints
+  async register(data: { name: string; email: string; password: string }): Promise<AuthResponse> {
+    return this.post<AuthResponse>('/auth/register', data);
+  }
+
+  async login(data: { email: string; password: string }): Promise<AuthResponse> {
+    return this.post<AuthResponse>('/auth/login', data);
+  }
+
+  async refreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
+    return this.post<{ accessToken: string; refreshToken: string }>('/auth/refresh', { refreshToken });
+  }
+
+  async getMe(): Promise<User> {
+    return this.get<User>('/auth/me');
   }
 }
 
