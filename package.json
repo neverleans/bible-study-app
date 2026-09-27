@@ -1,5 +1,5 @@
 {
-  "name": "projeto-estudo-biblia",
+  "name": "bible-study-app",
   "private": true,
   "scripts": {
     "dev": "turbo dev",

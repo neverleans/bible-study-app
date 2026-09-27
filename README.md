@@ -152,8 +152,8 @@ projeto-estudo-biblia/
 
 ### 1. Clonar o Repositório
 ```bash
-git clone https://github.com/SEU_USUARIO/projeto-estudo-biblia.git
-cd projeto-estudo-biblia
+git clone https://github.com/neverleans/bible-study-app.git
+cd bible-study-app
 ```
 
 ### 2. Instalar Dependências
@@ -217,8 +217,7 @@ pnpm build
 ## 👤 Autor
 
 **Lucas Ventavele Ribeiro**
-* GitHub: [@seu-usuario](https://github.com)
-* LinkedIn: [Lucas Ventavele Ribeiro](https://linkedin.com)
+* GitHub: [@neverleans](https://github.com/neverleans)
 * E-mail: lucasventavele@hotmail.com
 
 ---
