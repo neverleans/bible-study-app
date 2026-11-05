@@ -1,227 +1,194 @@
-# 📖 Plataforma de Estudo Bíblico & Exegese com IA
+<div align="center">
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?logo=typescript)](https://www.typescriptlang.org/)
-[![NestJS](https://img.shields.io/badge/NestJS-10.3-ea2845?logo=nestjs)](https://nestjs.com/)
-[![SvelteKit](https://img.shields.io/badge/SvelteKit-2.0-ff3e00?logo=svelte)](https://kit.svelte.dev/)
-[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4-38bdf8?logo=tailwindcss)](https://tailwindcss.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql)](https://www.postgresql.org/)
-[![Redis](https://img.shields.io/badge/Redis-7-dc382d?logo=redis)](https://redis.io/)
-[![BullMQ](https://img.shields.io/badge/BullMQ-5.0-orange)](https://bullmq.io/)
-[![Drizzle ORM](https://img.shields.io/badge/Drizzle_ORM-0.30-c5f74f)](https://orm.drizzle.team/)
-[![Turborepo](https://img.shields.io/badge/Turborepo-2.5-black?logo=turborepo)](https://turbo.build/)
-[![Tests](https://img.shields.io/badge/Tests-62%20Passing-brightgreen?logo=jest)](https://jestjs.io/)
-[![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
+# 📖 AI-Powered Exegesis & Theological Scripture Engine
 
-> Plataforma web moderna de alta performance para leitura bíblica, exegese teológica, pesquisa contextual e anotações pessoais, com isolamento criptográfico por **PostgreSQL Row-Level Security (RLS)**, filas distribuídas com **BullMQ + Redis**, busca full-text com dicionário em português e análises hermenêuticas via **Google Gemini**.
+**High-Performance Scripture Analysis Platform with Row-Level Security & Deterministic AI Queues**
+
+[![TypeScript Strict](https://img.shields.io/badge/TypeScript-Strict%205.7-3178C6.svg?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![NestJS 10](https://img.shields.io/badge/Backend-NestJS%2010-E0234E.svg?style=flat-square&logo=nestjs&logoColor=white)](https://nestjs.com/)
+[![SvelteKit 2](https://img.shields.io/badge/Frontend-SvelteKit%202%20(Svelte%205%20Runes)-FF3E00.svg?style=flat-square&logo=svelte&logoColor=white)](https://kit.svelte.dev/)
+[![Tailwind CSS v4](https://img.shields.io/badge/Styling-Tailwind%20v4-38BDF8.svg?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![PostgreSQL 16](https://img.shields.io/badge/Database-PostgreSQL%2016%20(RLS%20Native)-336791.svg?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![BullMQ & Redis](https://img.shields.io/badge/Queues-BullMQ%20%2B%20Redis%207-DC382D.svg?style=flat-square&logo=redis&logoColor=white)](https://bullmq.io/)
+[![Google Gemini AI](https://img.shields.io/badge/AI%20Engine-Google%20Gemini%202.5%20Flash-4285F4.svg?style=flat-square&logo=google&logoColor=white)](https://ai.google.dev/)
+[![Tests: 62 Passing](https://img.shields.io/badge/Tests-62%20Passing-059669.svg?style=flat-square&logo=jest&logoColor=white)](https://jestjs.io/)
+[![Turborepo](https://img.shields.io/badge/Monorepo-Turborepo-000000.svg?style=flat-square&logo=turborepo&logoColor=white)](https://turbo.build/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+
+<p align="center">
+  <b>Modern high-throughput scripture reading and theological exegesis platform engineered with PostgreSQL Row-Level Security (RLS) cryptographic isolation, sub-10ms GIN full-text search across 31,106 verses, asynchronous BullMQ workers, and SHA-256 cached Gemini AI analysis.</b>
+</p>
+
+[🇧🇷 Leia a Documentação em Português](README_PT.md) • [Architecture](#-architecture--system-design) • [Engineering Highlights](#-engineering-highlights) • [Monorepo Structure](#-monorepo-structure) • [Quickstart](#-getting-started)
+
+</div>
 
 ---
 
-## 🏛️ Visão Geral da Arquitetura
+## ⚡ Executive Summary
 
-O projeto foi concebido seguindo os mais rigorosos padrões de engenharia de software corporativa: monorepo com contratos fortemente tipados de ponta a ponta (100% TypeScript), separação clara de responsabilidades, arquitetura orientada a eventos e processamento assíncrono.
+**AI-Powered Scripture & Exegesis Engine** is a full-stack, enterprise-grade research platform built to handle deep semantic textual study, synchronized user annotations, and on-demand theological exegesis without connection starvation or data leakage.
+
+Architected as a TypeScript monorepo with **Turborepo**, it features a reactive **SvelteKit 2 (Svelte 5 Runes)** frontend and a modular **NestJS 10** backend gateway, delegating heavy LLM inferences to background **BullMQ workers** and user data isolation directly to the **PostgreSQL database kernel**.
+
+---
+
+## 🏛️ Architecture & System Design
 
 ```mermaid
 flowchart TD
-    subgraph Client["Frontend (SvelteKit 2 + Tailwind v4)"]
-        UI["Interface Reativa / Svelte 5 Runes"]
-        Store["Auth & Guest Store (Local + Cloud Sync)"]
-        ClientAPI["Typed API Client"]
+    subgraph ClientLayer ["Client Layer (SvelteKit 2 + Tailwind v4)"]
+        A[Reactive Svelte 5 Runes Interface]
+        B[Guest Store & LocalStorage Buffer]
+        C[Typed Monorepo API Client]
     end
 
-    subgraph API["Backend Gateway (NestJS 10)"]
-        Guard["JWT & Optional Auth Guards"]
-        Throttler["Rate Limiting (120 req/min)"]
-        Controller["Controllers RESTful + Swagger"]
-        Service["Feature Services"]
-        QueueProducer["BullMQ Queue Producer"]
+    subgraph APIGateway ["Backend Gateway (NestJS 10)"]
+        D[JWT Authentication & Optional Guest Guards]
+        E[Rate Limiter Throttler: 120 req/min]
+        F[REST Controllers + Swagger OpenAPI]
+        G[BullMQ Job Producer]
     end
 
-    subgraph Workers["Processamento Assíncrono"]
-        Worker["BullMQ Worker (AiAnalysisProcessor)"]
-        Gemini["Google Gemini 2.5 Flash"]
+    subgraph WorkerPool ["Asynchronous Processing"]
+        H[BullMQ Worker: AiAnalysisProcessor]
+        I[Google Gemini 2.5 Flash API]
     end
 
-    subgraph Storage["Camada de Persistência & Cache"]
-        Redis[("Redis 7 (Jobs Queue & Cache)")]
-        PG[("PostgreSQL 16\n- 66 Livros / 31.106 Versículos\n- tsvector GIN Index (Full-Text)\n- Row-Level Security (NOBYPASSRLS)\n- ai_cache (SHA-256 Hashing)")]
+    subgraph DataPersistence ["Persistence & In-Memory Layer"]
+        J[(Redis 7: Queue Broker & Job States)]
+        K[(PostgreSQL 16 Engine)]
+        L[GIN Index on tsvector: 31,106 Verses]
+        M[Native Row-Level Security NOBYPASSRLS]
+        N[Deterministic ai_cache SHA-256 Hashing]
     end
 
-    UI --> Store
-    Store --> ClientAPI
-    ClientAPI -->|HTTP / REST| Guard
-    Guard --> Throttler --> Controller --> Service
-
-    Service -->|Leitura / Busca / RLS Notes| PG
-    Service -->|Despacha Job| QueueProducer
-    QueueProducer -->|Enfileira| Redis
-    Worker -->|Consome Job| Redis
-    Worker -->|Requisição Exegese| Gemini
-    Worker -->|Cacheia Resultado| PG
+    ClientLayer -->|HTTP REST| APIGateway
+    APIGateway -->|Read Scripture / RLS Notes| K
+    APIGateway -->|Dispatch Exegesis Request| G
+    G -->|Enqueue Job| J
+    H -->|Consume Job| J
+    H -->|Execute Prompt| I
+    H -->|Store Cached Result| N
+    K --- L
+    K --- M
+    K --- N
 ```
 
 ---
 
-## 🚀 Diferenciais de Engenharia
+## 🛡️ Engineering Highlights
 
-### 1. PostgreSQL Row-Level Security (RLS) Nativo
-Diferente de aplicações comuns que confiam apenas na cláusula `WHERE user_id = ...` na aplicação (vulnerável a vazamentos de dados por erro humano), este projeto delega o controle de acesso ao **núcleo do banco de dados**:
-* Conexão da API configurada com a role `biblia_app` com privilégio estrito `NOBYPASSRLS`.
-* Transações isoladas via `SET LOCAL app.current_user_id = '...'`.
-* Políticas de segurança RLS aplicadas nativamente nas tabelas de anotações pessoais, impedindo qualquer vazamento entre usuários mesmo sob falha na camada de aplicação.
+### 1. Native PostgreSQL Row-Level Security (RLS)
+Unlike typical applications relying on application-level filtering (`WHERE user_id = ...`) that risk catastrophic data leaks due to developer error, this platform delegates user data isolation directly to the **PostgreSQL database kernel**:
+* Database connection role `biblia_app` is provisioned with strict `NOBYPASSRLS` privileges.
+* Dynamic query execution executes within isolated transactions using `SET LOCAL app.current_user_id = '...'`.
+* Native database policies enforce that a user's private annotations can never be read, modified, or joined by another tenant, even in the event of an application-layer bug.
 
-### 2. Busca Full-Text de Alta Performance (Português)
-* Geração automática de coluna `tsvector` com o dicionário de stemming em língua portuguesa (`config = 'portuguese'`).
-* **Índice GIN Invertido** cobrindo todos os **31.106 versículos bíblicos**, garantindo tempos de busca inferiores a 10ms.
-* Algoritmo de relevância `ts_rank_cd` com destaques contextuais gerados em banco via `ts_headline`.
+### 2. High-Performance Inverted Full-Text Search
+* Automatic `tsvector` generation using language stemming dictionaries (`config = 'portuguese'`).
+* **Inverted GIN Index** spanning all **31,106 biblical verses**, delivering sub-10ms query execution times across full-corpus search queries.
+* Algorithmic relevance scoring via `ts_rank_cd` with in-database contextual highlight generation via `ts_headline`.
 
-### 3. Fila Distribuída e Resiliência com BullMQ + Redis
-* Chamadas para a API do Google Gemini são processadas de forma assíncrona por **Workers BullMQ**, prevenindo gargalos de conexão HTTP e timeouts.
-* **Cache Determinístico** com hash SHA-256 dos prompts armazenado em PostgreSQL (`ai_cache`), economizando requisições e proporcionando respostas instantâneas para capítulos já analisados.
-* Polling reativo no frontend com feedback de ciclo de vida (`queued` -> `active` -> `completed`).
+### 3. Asynchronous Resilience via BullMQ & Redis
+* AI theological exegesis requests run asynchronously through **BullMQ background workers**, keeping HTTP response loops responsive and preventing API gateway connection exhaustion.
+* **Deterministic SHA-256 Result Caching:** AI prompts are hashed with SHA-256 and verified in PostgreSQL (`ai_cache`), returning instant responses for previously analyzed chapters and reducing LLM billing overhead.
+* Real-time reactive polling lifecycle on the frontend (`queued` ➔ `active` ➔ `completed`).
 
-### 4. Modo Visitante Inteligente (Guest Mode) & Sincronização em Nuvem
-* **Acesso Livre:** Visitantes não logados navegam livremente pela Bíblia completa, utilizam a busca, visualizam recursos de estudo e podem criar anotações locais salvas no `localStorage`.
-* **Migração Transparente em 1 Clique:** No momento em que o visitante cria uma conta ou faz login, o sistema detecta as anotações feitas no navegador e executa a sincronização em lote para o PostgreSQL sob a nova identidade RLS, sem perda de dados.
-
-### 5. Blindagem de Segurança & Observabilidade
-* Autenticação via **JWT (Access Token de 15m + Refresh Token rotativo de 7d)** com hash de senha `bcryptjs` (salt rounds: 10).
-* Proteção contra ataques de negação de serviço e scraping com `@nestjs/throttler` (limite global de 120 req/min).
-* Headers de segurança HTTP ativados via `helmet`.
-* Documentação viva e interativa de todos os endpoints via **Swagger OpenAPI** em `/api/docs`.
-* Endpoint de monitoramento de saúde `/health` utilizando `@nestjs/terminus`.
+### 4. Seamless Guest Mode & 1-Click Cloud Migration
+* **Zero Barrier to Entry:** Unauthenticated visitors explore the entire scripture corpus, use full-text search, and author personal annotations stored locally in `localStorage`.
+* **Atomic Cloud Migration:** The moment a guest registers or logs in, the client detects local annotations and triggers an atomic batch synchronization into PostgreSQL under their newly authenticated RLS tenant identity without data loss.
 
 ---
 
-## 🛠️ Stack Tecnológica
+## 📁 Monorepo Structure
 
-| Camada | Tecnologia | Motivação & Benefício |
-|---|---|---|
-| **Monorepo** | Turborepo + pnpm | Pipeline de build ultrarrápida, cache de tarefas e workspaces organizados |
-| **Backend** | NestJS 10 + Express | Arquitetura modular padrão corporativo com Injeção de Dependências |
-| **Frontend** | SvelteKit 2 + Svelte 5 Runes | Reatividade nativa compilada de altíssima performance e sem overhead de Virtual DOM |
-| **Estilização** | Tailwind CSS v4 | Estilização utilitária de última geração com suporte nativo a Dark Mode |
-| **Banco de Dados** | PostgreSQL 16 | Suporte robusto a RLS, índices GIN e extensão full-text em português |
-| **ORM** | Drizzle ORM | Type-safety absoluta sem overhead de runtime, com total controle sobre SQL |
-| **Filas & Cache** | Redis 7 + BullMQ 5 | Fila distribuída de alta vazão para processamento de background jobs |
-| **IA / LLM** | Google Gemini (`@google/genai`) | Análise teológica, exegese de capítulos e reflexões panorâmicas de livros |
-| **Testes** | Jest + Supertest | Cobertura rigorosa com testes unitários e E2E em todos os módulos |
-
----
-
-## 📊 Estrutura do Monorepo
-
-```
-projeto-estudo-biblia/
+```text
+bible-study-app/
 ├── packages/
-│   ├── api/                     # Backend NestJS
-│   │   ├── src/
-│   │   │   ├── database/        # Schema Drizzle, migrações e seeds (66 livros / 31.106 versículos)
-│   │   │   ├── modules/
-│   │   │   │   ├── auth/        # JWT, Refresh Tokens, Bcrypt, Guards
-│   │   │   │   ├── bible/       # Catálogo de livros, capítulos e versículos
-│   │   │   │   ├── search/      # Full-Text Search com tsvector e GIN
-│   │   │   │   ├── notes/       # CRUD de notas isolado com PostgreSQL RLS
-│   │   │   │   ├── ai/          # Gemini AI + BullMQ Worker + SHA-256 Cache
-│   │   │   │   └── study-aids/  # Resumos, versículos-chave e referências cruzadas
-│   │   │   ├── common/          # Decorators, interceptors, filtros e pipes globais
-│   │   │   └── health/          # Verificação de integridade com @nestjs/terminus
-│   │   └── test/                # Testes E2E (auth, bible, search, notes, ai, study-aids)
+│   ├── api/                     # Backend NestJS 10 Gateway
+│   │   ├── src/database/        # Drizzle ORM schema, migrations, and seeds (31,106 verses)
+│   │   ├── src/modules/
+│   │   │   ├── auth/            # JWT, Refresh Tokens, Bcrypt, Guards
+│   │   │   ├── bible/           # Book catalog, chapter pagination, and verse streaming
+│   │   │   ├── search/          # GIN full-text search engine
+│   │   │   ├── notes/           # Personal annotations secured with PostgreSQL RLS
+│   │   │   ├── ai/              # Gemini AI integration, BullMQ worker, and SHA-256 cache
+│   │   │   └── study-aids/      # Cross-references, key themes, and book summaries
+│   │   └── test/                # Jest & Supertest integration test suites
 │   │
-│   └── frontend/                # Frontend SvelteKit
+│   └── frontend/                # SvelteKit 2 + Svelte 5 Runes SPA
 │       └── src/
-│           ├── lib/
-│           │   ├── api/         # Cliente HTTP tipado com tratamento de erros
-│           │   ├── components/  # Componentes reativos (Leitor, Notas, Busca, Modais de IA)
-│           │   ├── stores/      # Stores Svelte (Auth, Sessão, Guest Notes)
-│           │   └── types/       # Definições de tipos TypeScript compartilhadas
-│           └── routes/          # Rotas SvelteKit (Home, Leitor, Busca, Notas)
+│           ├── lib/api/         # Strongly-typed HTTP API client with fault handling
+│           ├── lib/components/  # High-performance reactive UI components
+│           ├── lib/stores/      # Svelte stores (Auth, Session, Guest Buffer)
+│           └── routes/          # SvelteKit routes (Reader, Search, Notes, Exegesis)
 │
-├── docker-compose.yml           # PostgreSQL 16 (porta 5434) + Redis 7 (porta 6381)
-├── turbo.json                   # Configuração de build e pipeline do Turborepo
-└── pnpm-workspace.yaml          # Definição de pacotes do monorepo
+├── docker-compose.yml           # PostgreSQL 16 + Redis 7 local orchestration
+├── turbo.json                   # Turborepo task pipeline configuration
+└── pnpm-workspace.yaml          # Monorepo workspaces definition
 ```
 
 ---
 
-## 🚦 Como Executar o Projeto Localmente
+## 💻 Getting Started
 
-### Pré-requisitos
-* **Node.js** >= 20.x
-* **pnpm** >= 9.x
-* **Docker** e **Docker Compose**
+### Prerequisites
+* **Node.js**: `>= 20.x`
+* **pnpm**: `>= 9.x`
+* **Docker & Docker Compose**
 
-### 1. Clonar o Repositório
+### 1. Install Dependencies
 ```bash
 git clone https://github.com/neverleans/bible-study-app.git
 cd bible-study-app
-```
-
-### 2. Instalar Dependências
-```bash
 pnpm install
 ```
 
-### 3. Configurar as Variáveis de Ambiente
-Crie o arquivo `.env` a partir do modelo:
-```bash
-cp .env.example .env
-```
-> *Observação: Adicione sua `GEMINI_API_KEY` no arquivo `.env` para habilitar a geração de novas análises por IA.*
-
-### 4. Subir a Infraestrutura com Docker
-Inicie os containers do **PostgreSQL 16** e do **Redis 7**:
+### 2. Start Docker Services
 ```bash
 docker compose up -d
 ```
+*Launches PostgreSQL 16 (:5434) and Redis 7 (:6381).*
 
-### 5. Executar as Migrações e Seeds
-Crie as tabelas com RLS e povoe os 66 livros bíblicos, 1.189 capítulos, 31.106 versículos e recursos de estudo:
+### 3. Environment Configuration
 ```bash
-pnpm db:migrate
+cp packages/api/.env.example packages/api/.env
+```
+Configure `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, and `GEMINI_API_KEY`.
+
+### 4. Database Migrations & Seeds
+```bash
+pnpm db:push
 pnpm db:seed
 ```
 
-### 6. Iniciar os Ambientes de Desenvolvimento
-Inicie a API NestJS e o Frontend SvelteKit simultaneamente via Turborepo:
+### 5. Launch Development Monorepo
 ```bash
 pnpm dev
 ```
+* **Frontend:** `http://localhost:5173`
+* **API Gateway:** `http://localhost:3000`
+* **Swagger OpenAPI Docs:** `http://localhost:3000/api/docs`
 
-* **Frontend:** [http://localhost:5173](http://localhost:5173)
-* **Backend API:** [http://localhost:3000](http://localhost:3000)
-* **Documentação Swagger:** [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
-* **Healthcheck:** [http://localhost:3000/health](http://localhost:3000/health)
-
----
-
-## 🧪 Suíte de Testes Automatizados
-
-A base de código conta com **62 testes automatizados** cobrindo regras de negócio, persistência, autenticação e filas:
-
+### 6. Run Test Suite
 ```bash
-# Executar todos os testes unitários
-pnpm test:unit
+# Execute full test suite (62 tests)
+pnpm test
 
-# Executar todos os testes de ponta a ponta (E2E)
-pnpm --filter api test
-
-# Executar checagem estrita de tipos TypeScript
-pnpm typecheck
-
-# Gerar compilação de produção
-pnpm build
+# Run tests with coverage report
+pnpm test:cov
 ```
 
 ---
 
-## 👤 Autor
+## 📜 License
 
-**Lucas Ventavele Ribeiro**
-* GitHub: [@neverleans](https://github.com/neverleans)
-* E-mail: lucasventavele@hotmail.com
+Distributed under the **MIT License**. See `LICENSE` for details.
 
 ---
 
-## 📄 Licença
-
-Este projeto está sob a licença [MIT](LICENSE).
+<div align="center">
+  <b>Engineered with precision by Lucas Ventavele Ribeiro</b><br>
+  <a href="https://linkedin.com/in/lucas-ventavele-ribeiro">LinkedIn</a> • <a href="https://neverleans.github.io">Personal Portfolio</a> • <a href="https://github.com/neverleans">GitHub</a>
+</div>
