@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
 import { NotesService } from './notes.service';
 import { DRIZZLE } from '../../database/database.module';
 
