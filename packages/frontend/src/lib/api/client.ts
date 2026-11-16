@@ -13,6 +13,7 @@ import type {
   StudyAid,
   User,
   AuthResponse,
+  AccessTokenResponse,
   Highlight,
   UpsertHighlightPayload,
   ReadingProgressItem,
@@ -269,8 +270,8 @@ export class ApiClient {
     return this.post<AuthResponse>('/auth/login', data);
   }
 
-  async refreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
-    return this.post<{ accessToken: string; refreshToken: string }>('/auth/refresh', { refreshToken });
+  async refreshToken(refreshToken: string): Promise<AccessTokenResponse> {
+    return this.post<AccessTokenResponse>('/auth/refresh', { refreshToken });
   }
 
   async getMe(): Promise<User> {

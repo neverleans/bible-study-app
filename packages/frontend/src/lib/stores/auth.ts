@@ -175,7 +175,8 @@ export async function initAuth(): Promise<void> {
     if (refreshToken) {
       try {
         const tokens = await api.refreshToken(refreshToken);
-        saveTokens(tokens.accessToken, tokens.refreshToken);
+        // The API only rotates the access token; keep the refresh token we already have.
+        saveTokens(tokens.accessToken, refreshToken);
         const user = await api.getMe();
         currentUser.set(user);
       } catch {
