@@ -10,8 +10,8 @@
     "test": "vitest run",
     "test:unit": "vitest run",
     "gen:api": "openapi-typescript ../api/openapi.json -o src/lib/api/schema.d.ts",
-    "lint": "svelte-check --threshold warning",
-    "typecheck": "svelte-check --threshold error"
+    "lint": "svelte-kit sync && svelte-check --threshold warning",
+    "typecheck": "svelte-kit sync && svelte-check --threshold error"
   },
   "devDependencies": {
     "@sveltejs/adapter-node": "^5.2.0",

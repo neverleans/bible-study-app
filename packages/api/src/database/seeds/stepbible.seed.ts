@@ -34,7 +34,7 @@ function findFiles(dir: string, prefix: string): string[] {
 }
 
 function readLines(file: string): string[] {
-  return fs.readFileSync(file, 'utf-8').replace(/^﻿/, '').split(/\r?\n/);
+  return fs.readFileSync(file, 'utf-8').replace(/^\uFEFF/, '').split(/\r?\n/);
 }
 
 async function main() {
