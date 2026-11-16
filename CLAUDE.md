@@ -7,7 +7,7 @@
 
 ## Stack
 - Frontend: SvelteKit + TailwindCSS v4 (packages/frontend/)
-- Backend: NestJS + Prisma (packages/api/)
+- Backend: NestJS + Drizzle ORM (packages/api/)
 - Database: PostgreSQL 16
 - Cache/Queue: Redis 7 + BullMQ
 - Language: TypeScript (all packages)
