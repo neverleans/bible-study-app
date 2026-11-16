@@ -27,7 +27,7 @@ Guest identifiers (`x-user-id`) get a placeholder row created on first write.
 
 ### `verses`
 `id` · `bookId` FK · `chapterId` FK · `number` · `text` · `search_vector` (generated tsvector, `portuguese`, GIN index).
-Text is the ACF translation. Original-language data is **not** stored yet (planned: separate interlinear tables).
+Text is the ACF translation. Original-language words live in `original_words` (below).
 
 ### `notes` — RLS
 `id` uuid · `userId` FK · `bookId` FK · `chapterNumber` · `verseNumber` · `content` · timestamps.
@@ -41,6 +41,23 @@ highlight per verse; changing color is an upsert.
 ### `reading_progress` — RLS
 `id` uuid · `userId` FK · `bookId` FK · `chapterNumber` · `completedAt`.
 Unique (`userId`, `bookId`, `chapterNumber`): marking a read chapter again only refreshes the date.
+
+### `original_words`
+One row per Hebrew (OT) / Greek (NT) word: `bookId` · `chapterNumber` · `verseNumber` · `position` · `lang` (`heb`/`grc`) ·
+`surface` · `transliteration` · `gloss` (English) · `strong` (extended, e.g. `H1697G`) · `morph` · `lemma`.
+Unique (`bookId`, `chapterNumber`, `verseNumber`, `position`). Same (English/KJV) versification as `verses`.
+Public data, no RLS.
+
+### `lexicon_entries`
+`strong` PK (extended Strong, as used in `original_words.strong`) · `lang` · `lemma` · `transliteration` · `morph` · `gloss` · `meaning`.
+
+**Source and license:** STEPBible-Data (TAHOT, TAGNT, TBESH, TBESG), Tyndale House Cambridge / STEPBible.org,
+CC BY 4.0 (attribution shown in the UI). Import with
+`pnpm --filter api db:seed:original <dir> [--books=jn,mc]` after downloading the files from
+https://github.com/STEPBible/STEPBible-Data into an empty directory (names starting with `tahot`, `tagnt`,
+`tbesh`, `tbesg`). Only the base reading is imported (Leningrad / NA28). Pilot books so far: Jonas (`jn`) and Marcos (`mc`).
+The app role needs `GRANT SELECT ON original_words, lexicon_entries` (and `USAGE, SELECT` on `original_words_id_seq`
+for whoever runs the seed).
 
 ### `study_aids`
 `id` · `bookId` FK · `type` (`summary | key_verse | cross_ref | context`) · `content` · `metadata` jsonb · `createdAt`.

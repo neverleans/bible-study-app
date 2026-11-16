@@ -16,7 +16,8 @@
     "db:migrate": "ts-node src/database/migrate.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "ts-node src/database/seeds/index.ts"
+    "db:seed": "ts-node src/database/seeds/index.ts",
+    "db:seed:original": "ts-node src/database/seeds/stepbible.seed.ts"
   },
   "dependencies": {
     "@google/genai": "^2.24.0",

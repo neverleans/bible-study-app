@@ -16,6 +16,8 @@ import type {
   Highlight,
   UpsertHighlightPayload,
   ReadingProgressItem,
+  ChapterOriginal,
+  LexiconEntry,
 } from '$types';
 import { getCurrentUserId } from '$stores/user';
 
@@ -187,6 +189,15 @@ export class ApiClient {
 
   async unmarkChapterRead(bookAbbrev: string, chapterNumber: number): Promise<{ success: boolean }> {
     return this.delete<{ success: boolean }>(`/progress/${encodeURIComponent(bookAbbrev)}/${chapterNumber}`);
+  }
+
+  // Original languages (STEPBible, CC BY 4.0)
+  async getChapterOriginal(book: string, chapter: number): Promise<ChapterOriginal> {
+    return this.get<ChapterOriginal>(`/original/${encodeURIComponent(book)}/${chapter}`);
+  }
+
+  async getLexiconEntry(strong: string): Promise<LexiconEntry> {
+    return this.get<LexiconEntry>(`/lexicon/${encodeURIComponent(strong)}`);
   }
 
   // AI Endpoints

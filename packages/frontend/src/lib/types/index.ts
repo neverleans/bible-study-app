@@ -211,3 +211,31 @@ export interface ReadingProgressItem {
 
 
 
+
+export interface OriginalWord {
+  position: number;
+  surface: string;
+  transliteration: string | null;
+  gloss: string | null;
+  strong: string | null;
+  morph: string | null;
+  lemma: string | null;
+}
+
+export interface ChapterOriginal {
+  bookAbbrev: string;
+  chapterNumber: number;
+  lang: 'heb' | 'grc';
+  available: boolean;
+  verses: { verseNumber: number; words: OriginalWord[] }[];
+}
+
+export interface LexiconEntry {
+  strong: string;
+  lang: string;
+  lemma: string;
+  transliteration: string | null;
+  morph: string | null;
+  gloss: string | null;
+  meaning: string | null;
+}
