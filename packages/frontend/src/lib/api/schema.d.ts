@@ -354,6 +354,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/review/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Quantos cartões estão para revisar agora */
+        get: operations["ReviewController_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/review/due": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Cartões para revisar agora, os mais atrasados primeiro */
+        get: operations["ReviewController_due"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/review/cards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Adicionar um versículo à revisão espaçada (idempotente) */
+        post: operations["ReviewController_createVerseCard"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/review/cards/{id}/grade": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Avaliar a lembrança (errei/acertei/fácil) e reagendar o cartão */
+        post: operations["ReviewController_grade"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/review/cards/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remover um cartão da revisão */
+        delete: operations["ReviewController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ai/chapter": {
         parameters: {
             query?: never;
@@ -717,6 +802,47 @@ export interface components {
             score: number;
             total: number;
             createdAt: string;
+        };
+        ReviewSummaryDto: {
+            /** @description Cartões para revisar agora */
+            due: number;
+            /** @description Total de cartões */
+            total: number;
+        };
+        ReviewCardDto: {
+            id: string;
+            /** @enum {string} */
+            kind: "verse" | "quiz";
+            bookAbbrev: string;
+            bookName: string;
+            chapterNumber: number;
+            verseNumber: number | null;
+            /** @description O que a pessoa tenta lembrar */
+            prompt: string;
+            /** @description Resposta mostrada depois de tentar lembrar */
+            answer: string;
+            intervalDays: number;
+            repetitions: number;
+            dueAt: string;
+        };
+        DueCardsDto: {
+            totalDue: number;
+            cards: components["schemas"]["ReviewCardDto"][];
+        };
+        CreateVerseCardDto: {
+            /** @example jn */
+            bookAbbrev: string;
+            /** @example 1 */
+            chapterNumber: number;
+            /** @example 3 */
+            verseNumber: number;
+        };
+        GradeCardDto: {
+            /**
+             * @description Errei / Acertei / Fácil
+             * @enum {string}
+             */
+            grade: "again" | "good" | "easy";
         };
         AnalyzeChapterDto: {
             /**
@@ -1543,6 +1669,130 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AttemptResultDto"];
+                };
+            };
+        };
+    };
+    ReviewController_summary: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description ID do usuário (RLS) quando não autenticado por JWT */
+                "x-user-id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewSummaryDto"];
+                };
+            };
+        };
+    };
+    ReviewController_due: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: {
+                /** @description ID do usuário (RLS) quando não autenticado por JWT */
+                "x-user-id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DueCardsDto"];
+                };
+            };
+        };
+    };
+    ReviewController_createVerseCard: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description ID do usuário (RLS) quando não autenticado por JWT */
+                "x-user-id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateVerseCardDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewCardDto"];
+                };
+            };
+        };
+    };
+    ReviewController_grade: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description ID do usuário (RLS) quando não autenticado por JWT */
+                "x-user-id"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GradeCardDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewCardDto"];
+                };
+            };
+        };
+    };
+    ReviewController_remove: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description ID do usuário (RLS) quando não autenticado por JWT */
+                "x-user-id"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponseDto"];
                 };
             };
         };

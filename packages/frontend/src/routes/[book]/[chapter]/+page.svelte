@@ -91,6 +91,22 @@
     }
   }
 
+  let reviewMessage = $state<string | null>(null);
+
+  async function addToReview() {
+    if (selectedVerse === null) return;
+    studyError = null;
+    reviewMessage = null;
+    try {
+      await api.addVerseToReview(data.chapter.book.abbrev, data.chapter.number, selectedVerse);
+      reviewMessage = `Versículo ${selectedVerse} adicionado à revisão.`;
+      window.dispatchEvent(new CustomEvent('review-changed'));
+    } catch (err) {
+      console.error('Falha ao adicionar à revisão:', err);
+      studyError = 'Não foi possível adicionar à revisão. Tente novamente.';
+    }
+  }
+
   async function toggleRead() {
     studyError = null;
     const next = !isRead;
@@ -347,6 +363,18 @@
       <p class="text-xs" style="color: var(--color-muted)">
         Selecione um versículo e escolha o que você observou nele. Clique de novo na mesma cor para remover.
       </p>
+    {:else}
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" onclick={addToReview}
+          class="px-2.5 py-1 rounded-lg border text-xs font-medium cursor-pointer hover:border-blue-500"
+          style="border-color: var(--color-border)"
+          title="Cria um cartão de revisão espaçada com este versículo">
+          🧠 Revisar depois
+        </button>
+        {#if reviewMessage}
+          <span class="text-xs text-emerald-700 dark:text-emerald-300" aria-live="polite">{reviewMessage}</span>
+        {/if}
+      </div>
     {/if}
     {#if studyError}
       <p class="text-xs text-red-600 dark:text-red-400" role="alert">{studyError}</p>

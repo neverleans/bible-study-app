@@ -21,6 +21,10 @@ import type {
   LexiconEntry,
   ChapterQuizStatus,
   QuizAttemptResult,
+  ReviewCard,
+  DueCards,
+  ReviewSummary,
+  ReviewGrade,
 } from '$types';
 import { getCurrentUserId } from '$stores/user';
 
@@ -214,6 +218,23 @@ export class ApiClient {
 
   async submitQuizAttempt(quizId: string, answers: number[]): Promise<QuizAttemptResult> {
     return this.post<QuizAttemptResult>(`/quiz/${quizId}/attempts`, { answers });
+  }
+
+  // Spaced repetition
+  async getReviewSummary(): Promise<ReviewSummary> {
+    return this.get<ReviewSummary>('/review/summary');
+  }
+
+  async getDueCards(limit = 20): Promise<DueCards> {
+    return this.get<DueCards>(`/review/due?limit=${limit}`);
+  }
+
+  async addVerseToReview(bookAbbrev: string, chapterNumber: number, verseNumber: number): Promise<ReviewCard> {
+    return this.post<ReviewCard>('/review/cards', { bookAbbrev, chapterNumber, verseNumber });
+  }
+
+  async gradeReviewCard(id: string, grade: ReviewGrade): Promise<ReviewCard> {
+    return this.post<ReviewCard>(`/review/cards/${id}/grade`, { grade });
   }
 
   // AI Endpoints

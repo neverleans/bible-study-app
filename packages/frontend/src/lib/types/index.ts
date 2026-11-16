@@ -36,6 +36,11 @@ export type LexiconEntry = Schemas['LexiconEntryDto'];
 export type ChapterQuizStatus = Schemas['ChapterQuizStatusDto'];
 export type QuizAttemptResult = Schemas['AttemptResultDto'];
 
+export type ReviewCard = Schemas['ReviewCardDto'];
+export type DueCards = Schemas['DueCardsDto'];
+export type ReviewSummary = Schemas['ReviewSummaryDto'];
+export type ReviewGrade = Schemas['GradeCardDto']['grade'];
+
 export type User = Schemas['UserProfileDto'];
 export type AuthResponse = Schemas['AuthResponseDto'];
 export type AccessTokenResponse = Schemas['AccessTokenResponseDto'];
