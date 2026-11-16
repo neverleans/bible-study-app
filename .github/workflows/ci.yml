@@ -16,6 +16,10 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Contracts are up to date
+        run: |
+          pnpm contracts:generate
+          git diff --exit-code -- packages/api/openapi.json packages/frontend/src/lib/api/schema.d.ts
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test:unit
