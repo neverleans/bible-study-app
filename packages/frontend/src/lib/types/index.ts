@@ -1,49 +1,74 @@
-export interface Book {
-  id: number;
-  abbrev: string;
-  name: string;
-  testament: 'OT' | 'NT';
-  chapterCount: number;
-  order: number;
+/**
+ * Frontend types.
+ *
+ * Everything the API returns or accepts is derived from `$api/schema` (generated from the
+ * OpenAPI contract with `pnpm --filter @biblia/frontend gen:api`), so a DTO change on the API
+ * is a type error here instead of a runtime surprise. Only shapes the contract does not
+ * describe (query params, AI payloads, UI-only types) are written by hand below.
+ */
+import type { components } from '$api/schema';
+
+type Schemas = components['schemas'];
+
+// ---------------------------------------------------------------------------
+// Generated from the API contract
+// ---------------------------------------------------------------------------
+export type Book = Schemas['BookResponseDto'];
+export type Verse = Schemas['VerseDto'];
+export type ChapterNavigation = Schemas['ChapterNavigationDto'];
+export type ChapterResponse = Schemas['ChapterResponseDto'];
+export type SearchResultItem = Schemas['SearchResultItemDto'];
+export type SearchResponse = Schemas['SearchResponseDto'];
+
+export type Note = Schemas['NoteResponseDto'];
+export type CreateNotePayload = Schemas['CreateNoteDto'];
+export type UpdateNotePayload = Schemas['UpdateNoteDto'];
+
+export type Highlight = Schemas['HighlightResponseDto'];
+export type HighlightColor = Highlight['color'];
+export type UpsertHighlightPayload = Schemas['UpsertHighlightDto'];
+export type ReadingProgressItem = Schemas['ProgressResponseDto'];
+
+export type OriginalWord = Schemas['OriginalWordDto'];
+export type ChapterOriginal = Schemas['ChapterOriginalDto'];
+export type LexiconEntry = Schemas['LexiconEntryDto'];
+
+export type ChapterQuizStatus = Schemas['ChapterQuizStatusDto'];
+export type QuizAttemptResult = Schemas['AttemptResultDto'];
+
+export type User = Schemas['UserProfileDto'];
+export type AuthResponse = Schemas['AuthResponseDto'];
+export type AccessTokenResponse = Schemas['AccessTokenResponseDto'];
+
+// ---------------------------------------------------------------------------
+// Study aids: the contract types `metadata` as an open object; the UI reads known keys.
+// ---------------------------------------------------------------------------
+export interface StudyAidMetadata {
+  chapterNumber?: number;
+  verseNumber?: number;
+  reference?: string;
+  commentary?: string;
+  title?: string;
+  author?: string;
+  date?: string;
+  audience?: string;
+  keyThemes?: string[];
+  sourceReference?: string;
+  targetBookAbbrev?: string;
+  targetBookName?: string;
+  targetChapter?: number;
+  targetVerse?: number;
+  targetReference?: string;
+  [key: string]: unknown;
 }
 
-export interface Verse {
-  number: number;
-  text: string;
-}
+export type StudyAid = Omit<Schemas['StudyAidResponseDto'], 'metadata'> & {
+  metadata: StudyAidMetadata;
+};
 
-export interface ChapterNavigation {
-  bookAbbrev: string;
-  chapterNumber: number;
-}
-
-export interface ChapterResponse {
-  book: Book;
-  number: number;
-  verses: Verse[];
-  prevChapter: ChapterNavigation | null;
-  nextChapter: ChapterNavigation | null;
-}
-
-export interface SearchResultItem {
-  verseId: number;
-  bookName: string;
-  bookAbbrev: string;
-  testament: string;
-  chapterNumber: number;
-  verseNumber: number;
-  text: string;
-  highlight: string;
-}
-
-export interface SearchResponse {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  results: SearchResultItem[];
-}
-
+// ---------------------------------------------------------------------------
+// Hand-written: request params and shapes outside the contract
+// ---------------------------------------------------------------------------
 export interface SearchParams {
   q: string;
   page?: number;
@@ -57,35 +82,17 @@ export interface HealthResponse {
   info: Record<string, unknown>;
 }
 
-export interface Note {
-  id: string;
-  userId: string;
-  bookAbbrev: string;
-  bookName: string;
-  chapterNumber: number;
-  verseNumber: number;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateNotePayload {
-  bookAbbrev: string;
-  chapterNumber: number;
-  verseNumber: number;
-  content: string;
-}
-
-export interface UpdateNotePayload {
-  content: string;
-}
-
 export interface GetNotesParams {
   book?: string;
   chapter?: number;
   verse?: number;
 }
 
+export interface GuestNote extends Note {
+  isGuest?: boolean;
+}
+
+// AI results: the API documents `data` as an open object, so these stay hand-written.
 export interface LiterarySection {
   section: string;
   verses: string;
@@ -134,129 +141,4 @@ export interface AiStatusResponse<T = ChapterAnalysisResult | BookReflectionResu
   cached?: boolean;
   data?: T;
   error?: string;
-}
-
-export interface StudyAidMetadata {
-  chapterNumber?: number;
-  verseNumber?: number;
-  reference?: string;
-  commentary?: string;
-  title?: string;
-  author?: string;
-  date?: string;
-  audience?: string;
-  keyThemes?: string[];
-  sourceReference?: string;
-  targetBookAbbrev?: string;
-  targetBookName?: string;
-  targetChapter?: number;
-  targetVerse?: number;
-  targetReference?: string;
-  [key: string]: unknown;
-}
-
-export interface StudyAid {
-  id: number;
-  bookId: number;
-  bookAbbrev: string;
-  bookName: string;
-  type: 'summary' | 'key_verse' | 'cross_ref' | 'context' | string;
-  content: string;
-  metadata: StudyAidMetadata;
-  createdAt: string;
-}
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  createdAt: string;
-}
-
-export interface AuthResponse {
-  user: User;
-  accessToken: string;
-  refreshToken: string;
-}
-
-export interface GuestNote extends Note {
-  isGuest?: boolean;
-}
-
-export type HighlightColor = 'person' | 'place' | 'repeat' | 'promise' | 'sequence' | 'contrast';
-
-export interface Highlight {
-  id: string;
-  bookAbbrev: string;
-  chapterNumber: number;
-  verseNumber: number;
-  color: HighlightColor;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface UpsertHighlightPayload {
-  bookAbbrev: string;
-  chapterNumber: number;
-  verseNumber: number;
-  color: HighlightColor;
-}
-
-export interface ReadingProgressItem {
-  bookAbbrev: string;
-  chapterNumber: number;
-  completedAt: string;
-}
-
-
-
-
-export interface ChapterQuizStatus {
-  status: 'none' | 'generating' | 'ready' | 'failed';
-  quizId?: string;
-  questions?: { question: string; options: string[]; verse: number }[];
-  error?: string;
-}
-
-export interface QuizAttemptResult {
-  attemptId: string;
-  score: number;
-  total: number;
-  results: {
-    questionIndex: number;
-    chosenIndex: number;
-    correctIndex: number;
-    correct: boolean;
-    explanation: string;
-    verse: number;
-  }[];
-}
-
-export interface OriginalWord {
-  position: number;
-  surface: string;
-  transliteration: string | null;
-  gloss: string | null;
-  strong: string | null;
-  morph: string | null;
-  lemma: string | null;
-}
-
-export interface ChapterOriginal {
-  bookAbbrev: string;
-  chapterNumber: number;
-  lang: 'heb' | 'grc';
-  available: boolean;
-  verses: { verseNumber: number; words: OriginalWord[] }[];
-}
-
-export interface LexiconEntry {
-  strong: string;
-  lang: string;
-  lemma: string;
-  transliteration: string | null;
-  morph: string | null;
-  gloss: string | null;
-  meaning: string | null;
 }
