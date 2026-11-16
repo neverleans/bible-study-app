@@ -42,11 +42,11 @@ vai para o frontend.
 packages/
   api/src/
     modules/   auth, bible, search, notes, highlights, progress, original, quiz,
-               study-aids, ai
+               review, study-aids, ai
     database/  schema/ (Drizzle), migrations/ (+ rollback/), seeds/
     common/    decorators, filtros
   frontend/src/
-    routes/    /, /[book], /[book]/[chapter], /notes, /search
+    routes/    /, /[book], /[book]/[chapter], /notes, /search, /review
     lib/       api/client.ts, stores/ (auth, study, theme, user), components/, types/
 docs/          architecture/, decisions/ (ADRs), testing/, runbooks/
 scripts/       verify-fast.sh, verify.sh
@@ -57,7 +57,7 @@ scripts/       verify-fast.sh, verify.sh
 Detalhes em [docs/architecture/data-model.md](docs/architecture/data-model.md).
 
 - **Texto:** `books`, `chapters`, `verses` (ACF em português, busca full-text `portuguese` com GIN).
-- **Do usuário, com RLS:** `notes`, `highlights`, `reading_progress`, `quiz_attempts`.
+- **Do usuário, com RLS:** `notes`, `highlights`, `reading_progress`, `quiz_attempts`, `review_cards`.
 - **Referência pública:** `original_words` e `lexicon_entries` (STEPBible, CC BY 4.0), `study_aids`
   (curado), `quizzes` (gerado por IA), `ai_cache`.
 
@@ -86,6 +86,11 @@ com fallback de sub-sentidos para o verbete principal. Livros não importados re
 worker chama o Gemini, valida a saída com zod e grava em `quizzes`. O cliente acompanha com
 `GET /quiz/chapter/...` (polling). O gabarito só sai depois de `POST /quiz/:id/attempts`, que
 corrige no servidor. Sem chave ou com saída inválida o job falha; não há quiz inventado.
+
+**Revisão espaçada.** Erros do quiz viram cartões `review_cards` no momento da correção, e o
+usuário pode adicionar um versículo com “Revisar depois”. `GET /review/due` lista o que venceu;
+`POST /review/cards/:id/grade` (errei/acertei/fácil) reagenda com SM-2. A rota `/review` faz a
+sessão e o menu mostra quantos cartões vencem. Cartões de visitante não migram para a conta.
 
 ## Contrato API ↔ frontend
 
