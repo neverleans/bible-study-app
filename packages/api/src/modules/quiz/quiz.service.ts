@@ -3,7 +3,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { sql, eq, and, desc } from 'drizzle-orm';
 import { DRIZZLE, DrizzleDb } from '../../database/database.module';
-import { books, chapters, quizzes, quizAttempts, users } from '../../database/schema';
+import { books, chapters, quizzes, quizAttempts, reviewCards, users } from '../../database/schema';
 import { QUIZ_PROMPT_VERSION } from './quiz.schemas';
 import {
   AttemptResultDto,
@@ -145,6 +145,29 @@ export class QuizService {
         .insert(quizAttempts)
         .values({ userId, quizId, answers, score, total: results.length })
         .returning({ id: quizAttempts.id });
+
+      // Missed questions become spaced-repetition cards (idempotent per question).
+      const missed = results.filter((r) => !r.correct);
+      if (missed.length > 0) {
+        await tx
+          .insert(reviewCards)
+          .values(
+            missed.map((r) => {
+              const q = quiz.questions[r.questionIndex];
+              return {
+                userId,
+                bookId: quiz.bookId,
+                chapterNumber: quiz.chapterNumber,
+                verseNumber: q.verse,
+                kind: 'quiz',
+                sourceKey: `quiz:${quizId}:${r.questionIndex}`,
+                prompt: q.question,
+                answer: `${q.options[q.correctIndex]}. ${q.explanation}`,
+              };
+            }),
+          )
+          .onConflictDoNothing();
+      }
       return row.id;
     });
 
