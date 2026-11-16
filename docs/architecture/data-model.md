@@ -59,6 +59,18 @@ https://github.com/STEPBible/STEPBible-Data into an empty directory (names start
 The app role needs `GRANT SELECT ON original_words, lexicon_entries` (and `USAGE, SELECT` on `original_words_id_seq`
 for whoever runs the seed).
 
+### `quizzes`
+`id` uuid · `bookId` FK · `chapterNumber` · `promptVersion` · `model` · `questions` jsonb · `createdAt`.
+AI-generated chapter quiz (shared, no RLS), unique (`bookId`, `chapterNumber`, `promptVersion`). Each question stores
+`question`, 4 `options`, `correctIndex`, `explanation` and the `verse` it is based on. The API never sends
+`correctIndex`/`explanation` before an attempt is graded. Generated through the `ai-analysis` BullMQ queue
+(`chapter-quiz` job) with zod validation (`modules/quiz/quiz.schemas.ts`); there is no canned fallback, a missing
+`GEMINI_API_KEY` or invalid output marks the job failed.
+
+### `quiz_attempts` — RLS
+`id` uuid · `userId` FK · `quizId` FK · `answers` jsonb (chosen index per question) · `score` · `total` · `createdAt`.
+Grading happens on the server. Guests use the `x-user-id` header; attempts are not migrated to an account on login yet.
+
 ### `study_aids`
 `id` · `bookId` FK · `type` (`summary | key_verse | cross_ref | context`) · `content` · `metadata` jsonb · `createdAt`.
 Curated content (seed); the chapter number lives in `metadata.chapterNumber`.
