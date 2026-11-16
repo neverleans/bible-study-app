@@ -4,6 +4,7 @@
   import NoteDrawer from '$components/notes/NoteDrawer.svelte';
   import ChapterAnalysisModal from '$components/ai/ChapterAnalysisModal.svelte';
   import StudyAidsPanel from '$components/bible/StudyAidsPanel.svelte';
+  import OriginalWordsPanel from '$components/bible/OriginalWordsPanel.svelte';
   import { api } from '$api/client';
   import { onMount } from 'svelte';
   import { getGuestNotes, isAuthenticated } from '$stores/auth';
@@ -17,11 +18,12 @@
     setChapterRead,
   } from '$stores/study';
   import type { PageData } from './$types';
-  import type { Verse, Note, StudyAid, Highlight, HighlightColor } from '$types';
+  import type { Verse, Note, StudyAid, Highlight, HighlightColor, ChapterOriginal } from '$types';
 
   let { data }: { data: PageData } = $props();
 
   let chapterHighlights = $state<Highlight[]>([]);
+  let chapterOriginal = $state<ChapterOriginal | null>(null);
   let isRead = $state(false);
   let studyError = $state<string | null>(null);
 
@@ -43,6 +45,20 @@
     if (book === data.chapter.book.abbrev && chapter === data.chapter.number) {
       chapterHighlights = highlights;
       isRead = read.includes(chapter);
+    }
+  }
+
+  async function loadOriginal() {
+    const book = data.chapter.book.abbrev;
+    const chapter = data.chapter.number;
+    chapterOriginal = null;
+    try {
+      const result = await api.getChapterOriginal(book, chapter);
+      if (book === data.chapter.book.abbrev && chapter === data.chapter.number) {
+        chapterOriginal = result;
+      }
+    } catch (err) {
+      console.warn('Palavras originais indisponíveis:', err);
     }
   }
 
@@ -170,6 +186,7 @@
       loadChapterNotes();
       loadChapterStudyAids();
       loadStudyState();
+      loadOriginal();
     }
   });
 
@@ -334,6 +351,9 @@
       <p class="text-xs text-red-600 dark:text-red-400" role="alert">{studyError}</p>
     {/if}
   </div>
+
+  <!-- Interpret: original-language words of the selected verse -->
+  <OriginalWordsPanel original={chapterOriginal} verseNumber={selectedVerse} />
 
   <!-- Curated Study Aids (Summaries, Key Verses, Cross-References) -->
   {#if chapterStudyAids.length > 0}
