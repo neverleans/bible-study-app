@@ -7,6 +7,8 @@ import { HealthModule } from './health/health.module';
 import { BibleModule } from './modules/bible/bible.module';
 import { SearchModule } from './modules/search/search.module';
 import { NotesModule } from './modules/notes/notes.module';
+import { HighlightsModule } from './modules/highlights/highlights.module';
+import { ProgressModule } from './modules/progress/progress.module';
 import { AiModule } from './modules/ai/ai.module';
 import { StudyAidsModule } from './modules/study-aids/study-aids.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -24,6 +26,8 @@ import { APP_GUARD } from '@nestjs/core';
     BibleModule,
     SearchModule,
     NotesModule,
+    HighlightsModule,
+    ProgressModule,
     AiModule,
     StudyAidsModule,
     AuthModule,
