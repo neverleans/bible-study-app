@@ -17,6 +17,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "ts-node src/database/seeds/index.ts",
+    "openapi:generate": "ts-node src/openapi/generate-openapi.ts",
     "db:seed:original": "ts-node src/database/seeds/stepbible.seed.ts"
   },
   "dependencies": {
