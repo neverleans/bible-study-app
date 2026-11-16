@@ -7,10 +7,84 @@
   import { api } from '$api/client';
   import { onMount } from 'svelte';
   import { getGuestNotes, isAuthenticated } from '$stores/auth';
+  import {
+    HIGHLIGHT_META,
+    HIGHLIGHT_COLORS,
+    loadHighlights,
+    setHighlight,
+    removeHighlight,
+    loadReadChapters,
+    setChapterRead,
+  } from '$stores/study';
   import type { PageData } from './$types';
-  import type { Verse, Note, StudyAid } from '$types';
+  import type { Verse, Note, StudyAid, Highlight, HighlightColor } from '$types';
 
   let { data }: { data: PageData } = $props();
+
+  let chapterHighlights = $state<Highlight[]>([]);
+  let isRead = $state(false);
+  let studyError = $state<string | null>(null);
+
+  let highlightsByVerse = $derived(
+    chapterHighlights.reduce<Record<number, HighlightColor>>((acc, h) => {
+      acc[h.verseNumber] = h.color;
+      return acc;
+    }, {})
+  );
+
+  async function loadStudyState() {
+    const book = data.chapter.book.abbrev;
+    const chapter = data.chapter.number;
+    const [highlights, read] = await Promise.all([
+      loadHighlights(book, chapter, $isAuthenticated),
+      loadReadChapters(book, $isAuthenticated),
+    ]);
+    // Ignore stale responses if the user navigated meanwhile
+    if (book === data.chapter.book.abbrev && chapter === data.chapter.number) {
+      chapterHighlights = highlights;
+      isRead = read.includes(chapter);
+    }
+  }
+
+  async function handleHighlight(color: HighlightColor) {
+    if (selectedVerse === null) return;
+    studyError = null;
+    try {
+      if (selectedHighlight && selectedHighlight.color === color) {
+        await removeHighlight(selectedHighlight, $isAuthenticated);
+        chapterHighlights = chapterHighlights.filter((h) => h.id !== selectedHighlight!.id);
+        return;
+      }
+      const saved = await setHighlight(
+        {
+          bookAbbrev: data.chapter.book.abbrev,
+          chapterNumber: data.chapter.number,
+          verseNumber: selectedVerse,
+          color,
+        },
+        $isAuthenticated,
+      );
+      chapterHighlights = [
+        ...chapterHighlights.filter((h) => h.verseNumber !== saved.verseNumber),
+        saved,
+      ];
+    } catch (err) {
+      console.error('Falha ao salvar destaque:', err);
+      studyError = 'Não foi possível salvar o destaque. Tente novamente.';
+    }
+  }
+
+  async function toggleRead() {
+    studyError = null;
+    const next = !isRead;
+    try {
+      await setChapterRead(data.chapter.book.abbrev, data.chapter.number, next, $isAuthenticated);
+      isRead = next;
+    } catch (err) {
+      console.error('Falha ao atualizar progresso:', err);
+      studyError = 'Não foi possível atualizar o progresso. Tente novamente.';
+    }
+  }
 
   let selectedVerse = $state<number | null>(null);
   let isDrawerOpen = $state(false);
@@ -37,6 +111,12 @@
     selectedVerse !== null
       ? chapterNotes.filter((n) => n.verseNumber === selectedVerse)
       : []
+  );
+
+  let selectedHighlight = $derived(
+    selectedVerse !== null
+      ? chapterHighlights.find((h) => h.verseNumber === selectedVerse) || null
+      : null
   );
 
   async function loadChapterNotes() {
@@ -89,6 +169,7 @@
       isDrawerOpen = false;
       loadChapterNotes();
       loadChapterStudyAids();
+      loadStudyState();
     }
   });
 
@@ -217,6 +298,43 @@
     </div>
   </div>
 
+  <!-- Observe: semantic highlights for the selected verse -->
+  <div
+    class="px-4 py-3 rounded-xl border space-y-2"
+    style="background-color: var(--color-surface); border-color: var(--color-border)"
+  >
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="text-xs font-semibold" style="color: var(--color-muted)">
+        🔍 Observar{selectedVerse !== null ? ` — versículo ${selectedVerse}` : ''}:
+      </span>
+      {#each HIGHLIGHT_COLORS as color}
+        {@const meta = HIGHLIGHT_META[color]}
+        <button
+          type="button"
+          onclick={() => handleHighlight(color)}
+          disabled={selectedVerse === null}
+          aria-pressed={selectedHighlight?.color === color}
+          title="{meta.label} — {meta.hint}"
+          class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed {selectedHighlight?.color === color
+            ? 'ring-2 ring-blue-500/60'
+            : ''}"
+          style="border-color: var(--color-border)"
+        >
+          <span class="w-3 h-3 rounded-full {meta.swatch}"></span>
+          {meta.label}
+        </button>
+      {/each}
+    </div>
+    {#if selectedVerse === null}
+      <p class="text-xs" style="color: var(--color-muted)">
+        Selecione um versículo e escolha o que você observou nele. Clique de novo na mesma cor para remover.
+      </p>
+    {/if}
+    {#if studyError}
+      <p class="text-xs text-red-600 dark:text-red-400" role="alert">{studyError}</p>
+    {/if}
+  </div>
+
   <!-- Curated Study Aids (Summaries, Key Verses, Cross-References) -->
   {#if chapterStudyAids.length > 0}
     <StudyAidsPanel studyAids={chapterStudyAids} />
@@ -231,8 +349,24 @@
       verses={data.chapter.verses}
       {selectedVerse}
       {notesCountByVerse}
+      {highlightsByVerse}
       onVerseClick={handleVerseClick}
     />
+  </div>
+
+  <!-- Reading progress -->
+  <div class="flex justify-center">
+    <button
+      type="button"
+      onclick={toggleRead}
+      aria-pressed={isRead}
+      class="px-5 py-2.5 rounded-xl border font-medium text-sm transition-all cursor-pointer {isRead
+        ? 'bg-emerald-100 dark:bg-emerald-950/50 border-emerald-400 text-emerald-800 dark:text-emerald-200'
+        : 'hover:border-emerald-500'}"
+      style={isRead ? '' : 'background-color: var(--color-surface); border-color: var(--color-border)'}
+    >
+      {isRead ? '✓ Capítulo lido (clique para desmarcar)' : 'Marcar capítulo como lido'}
+    </button>
   </div>
 
   <!-- Bottom Navigation Buttons -->

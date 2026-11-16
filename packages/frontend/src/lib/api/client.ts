@@ -13,6 +13,9 @@ import type {
   StudyAid,
   User,
   AuthResponse,
+  Highlight,
+  UpsertHighlightPayload,
+  ReadingProgressItem,
 } from '$types';
 import { getCurrentUserId } from '$stores/user';
 
@@ -154,6 +157,36 @@ export class ApiClient {
 
   async deleteNote(id: string): Promise<{ success: boolean }> {
     return this.delete<{ success: boolean }>(`/notes/${id}`);
+  }
+
+  // Highlights Endpoints (RLS)
+  async getHighlights(params?: { book?: string; chapter?: number }): Promise<Highlight[]> {
+    const searchParams = new URLSearchParams();
+    if (params?.book) searchParams.set('book', params.book);
+    if (params?.chapter) searchParams.set('chapter', params.chapter.toString());
+    const qs = searchParams.toString();
+    return this.get<Highlight[]>(qs ? `/highlights?${qs}` : '/highlights');
+  }
+
+  async upsertHighlight(data: UpsertHighlightPayload): Promise<Highlight> {
+    return this.put<Highlight>('/highlights', data);
+  }
+
+  async deleteHighlight(id: string): Promise<{ success: boolean }> {
+    return this.delete<{ success: boolean }>(`/highlights/${id}`);
+  }
+
+  // Reading Progress Endpoints (RLS)
+  async getProgress(book?: string): Promise<ReadingProgressItem[]> {
+    return this.get<ReadingProgressItem[]>(book ? `/progress?book=${encodeURIComponent(book)}` : '/progress');
+  }
+
+  async markChapterRead(bookAbbrev: string, chapterNumber: number): Promise<ReadingProgressItem> {
+    return this.put<ReadingProgressItem>('/progress', { bookAbbrev, chapterNumber });
+  }
+
+  async unmarkChapterRead(bookAbbrev: string, chapterNumber: number): Promise<{ success: boolean }> {
+    return this.delete<{ success: boolean }>(`/progress/${encodeURIComponent(bookAbbrev)}/${chapterNumber}`);
   }
 
   // AI Endpoints
