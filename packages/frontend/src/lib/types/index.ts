@@ -184,5 +184,30 @@ export interface GuestNote extends Note {
   isGuest?: boolean;
 }
 
+export type HighlightColor = 'person' | 'place' | 'repeat' | 'promise' | 'sequence' | 'contrast';
+
+export interface Highlight {
+  id: string;
+  bookAbbrev: string;
+  chapterNumber: number;
+  verseNumber: number;
+  color: HighlightColor;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpsertHighlightPayload {
+  bookAbbrev: string;
+  chapterNumber: number;
+  verseNumber: number;
+  color: HighlightColor;
+}
+
+export interface ReadingProgressItem {
+  bookAbbrev: string;
+  chapterNumber: number;
+  completedAt: string;
+}
+
 
 

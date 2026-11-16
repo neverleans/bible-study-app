@@ -1,6 +1,7 @@
 import { writable, derived } from 'svelte/store';
 import { browser } from '$app/environment';
 import { api } from '$api/client';
+import { syncGuestStudyDataToCloud } from '$stores/study';
 import type { User, Note, CreateNotePayload, UpdateNotePayload } from '$types';
 
 const ACCESS_TOKEN_KEY = 'biblia_access_token';
@@ -193,9 +194,12 @@ export async function initAuth(): Promise<void> {
 export async function login(email: string, password: string): Promise<{ syncedCount: number }> {
   const res = await api.login({ email, password });
   saveTokens(res.accessToken, res.refreshToken);
+  // Push guest highlights/progress BEFORE flipping to authenticated, so the page's
+  // reload-on-auth-change effect sees the synced data (best-effort, never throws).
+  await syncGuestStudyDataToCloud().catch((err) => console.error('Sync de estudo falhou:', err));
   currentUser.set(res.user);
 
-  // Sync any guest notes
+  // Sync any guest notes (and highlights/progress, which are best-effort)
   const syncedCount = await syncGuestNotesToCloud();
   if (syncedCount > 0) {
     authNotification.set(
@@ -213,9 +217,12 @@ export async function register(
 ): Promise<{ syncedCount: number }> {
   const res = await api.register({ name, email, password });
   saveTokens(res.accessToken, res.refreshToken);
+  // Push guest highlights/progress BEFORE flipping to authenticated, so the page's
+  // reload-on-auth-change effect sees the synced data (best-effort, never throws).
+  await syncGuestStudyDataToCloud().catch((err) => console.error('Sync de estudo falhou:', err));
   currentUser.set(res.user);
 
-  // Sync any guest notes
+  // Sync any guest notes (and highlights/progress, which are best-effort)
   const syncedCount = await syncGuestNotesToCloud();
   if (syncedCount > 0) {
     authNotification.set(

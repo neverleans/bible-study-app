@@ -4,17 +4,23 @@ import { books } from './books';
 import { chapters } from './chapters';
 import { verses } from './verses';
 import { notes } from './notes';
+import { highlights } from './highlights';
+import { readingProgress } from './reading-progress';
 import { studyAids } from './study-aids';
 import { aiCache } from './ai-cache';
 
 export const usersRelations = relations(users, ({ many }) => ({
   notes: many(notes),
+  highlights: many(highlights),
+  readingProgress: many(readingProgress),
 }));
 
 export const booksRelations = relations(books, ({ many }) => ({
   chapters: many(chapters),
   verses: many(verses),
   notes: many(notes),
+  highlights: many(highlights),
+  readingProgress: many(readingProgress),
   studyAids: many(studyAids),
   aiCache: many(aiCache),
 }));
