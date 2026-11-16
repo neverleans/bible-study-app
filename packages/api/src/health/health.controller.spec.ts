@@ -8,7 +8,7 @@ describe('HealthController', () => {
 
   const mockHealthCheckService = {
     check: jest.fn().mockImplementation((indicators) => {
-      const results = indicators.map((fn: () => unknown) => fn());
+      indicators.forEach((fn: () => unknown) => fn());
       return Promise.resolve({
         status: 'ok',
         info: { database: { status: 'up' } },
