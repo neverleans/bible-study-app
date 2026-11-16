@@ -5,6 +5,7 @@
   import ChapterAnalysisModal from '$components/ai/ChapterAnalysisModal.svelte';
   import StudyAidsPanel from '$components/bible/StudyAidsPanel.svelte';
   import OriginalWordsPanel from '$components/bible/OriginalWordsPanel.svelte';
+  import QuizPanel from '$components/study/QuizPanel.svelte';
   import { api } from '$api/client';
   import { onMount } from 'svelte';
   import { getGuestNotes, isAuthenticated } from '$stores/auth';
@@ -373,6 +374,9 @@
       onVerseClick={handleVerseClick}
     />
   </div>
+
+  <!-- Retrieval practice: AI-generated quiz graded on the server -->
+  <QuizPanel book={data.chapter.book.abbrev} chapter={data.chapter.number} />
 
   <!-- Reading progress -->
   <div class="flex justify-center">
