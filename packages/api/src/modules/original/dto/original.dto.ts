@@ -1,13 +1,13 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class OriginalWordDto {
   @ApiProperty() position: number;
   @ApiProperty({ description: 'Palavra em hebraico ou grego' }) surface: string;
-  @ApiPropertyOptional({ nullable: true }) transliteration: string | null;
-  @ApiPropertyOptional({ nullable: true, description: 'Glosa em inglês (STEPBible)' }) gloss: string | null;
-  @ApiPropertyOptional({ nullable: true, description: 'Strong estendido, ex.: H1697G' }) strong: string | null;
-  @ApiPropertyOptional({ nullable: true }) morph: string | null;
-  @ApiPropertyOptional({ nullable: true }) lemma: string | null;
+  @ApiProperty({ type: String, nullable: true }) transliteration: string | null;
+  @ApiProperty({ type: String, nullable: true, description: 'Glosa em inglês (STEPBible)' }) gloss: string | null;
+  @ApiProperty({ type: String, nullable: true, description: 'Strong estendido, ex.: H1697G' }) strong: string | null;
+  @ApiProperty({ type: String, nullable: true }) morph: string | null;
+  @ApiProperty({ type: String, nullable: true }) lemma: string | null;
 }
 
 export class OriginalVerseDto {
@@ -28,8 +28,8 @@ export class LexiconEntryDto {
   @ApiProperty() strong: string;
   @ApiProperty({ enum: ['heb', 'grc'] }) lang: string;
   @ApiProperty() lemma: string;
-  @ApiPropertyOptional({ nullable: true }) transliteration: string | null;
-  @ApiPropertyOptional({ nullable: true }) morph: string | null;
-  @ApiPropertyOptional({ nullable: true }) gloss: string | null;
-  @ApiPropertyOptional({ nullable: true }) meaning: string | null;
+  @ApiProperty({ type: String, nullable: true }) transliteration: string | null;
+  @ApiProperty({ type: String, nullable: true }) morph: string | null;
+  @ApiProperty({ type: String, nullable: true }) gloss: string | null;
+  @ApiProperty({ type: String, nullable: true }) meaning: string | null;
 }

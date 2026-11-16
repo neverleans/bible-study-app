@@ -15,6 +15,7 @@ import { NotesService } from './notes.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { NoteResponseDto } from './dto/note-response.dto';
+import { SuccessResponseDto } from '../../common/dto/success-response.dto';
 import { CurrentUserId } from '../../common/decorators/current-user-id.decorator';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 
@@ -71,7 +72,7 @@ export class NotesController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Excluir uma nota (somente o autor via RLS)' })
-  @ApiResponse({ status: 200, description: 'Nota excluída com sucesso' })
+  @ApiResponse({ status: 200, type: SuccessResponseDto, description: 'Nota excluída com sucesso' })
   @ApiResponse({ status: 404, description: 'Nota não encontrada ou acesso não autorizado' })
   async deleteNote(
     @CurrentUserId() userId: string,

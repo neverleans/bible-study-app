@@ -12,6 +12,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiHeader, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { ProgressService } from './progress.service';
 import { MarkChapterReadDto, ProgressResponseDto } from './dto/progress.dto';
+import { SuccessResponseDto } from '../../common/dto/success-response.dto';
 import { CurrentUserId } from '../../common/decorators/current-user-id.decorator';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 
@@ -50,6 +51,7 @@ export class ProgressController {
 
   @Delete(':book/:chapter')
   @ApiOperation({ summary: 'Desmarcar um capítulo como lido' })
+  @ApiResponse({ status: 200, type: SuccessResponseDto })
   @ApiResponse({ status: 404, description: 'Capítulo não estava marcado' })
   unmarkRead(
     @CurrentUserId() userId: string,
