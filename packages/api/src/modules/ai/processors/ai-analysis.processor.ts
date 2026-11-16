@@ -1,9 +1,12 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
+import { and, eq } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as schema from '../../../database/schema';
 import { aiCache } from '../../../database/schema/ai-cache';
+import { quizzes } from '../../../database/schema/quizzes';
+import { QUIZ_PROMPT_VERSION } from '../../quiz/quiz.schemas';
 import { DRIZZLE } from '../../../database/database.module';
 import { GeminiService } from '../services/gemini.service';
 import {
@@ -30,6 +33,8 @@ export class AiAnalysisProcessor extends WorkerHost {
         return await this.processChapterAnalysis(job);
       } else if (job.name === 'book-reflection') {
         return await this.processBookReflection(job);
+      } else if (job.name === 'chapter-quiz') {
+        return await this.processChapterQuiz(job);
       } else {
         throw new Error(`Tipo de job desconhecido: ${job.name}`);
       }
@@ -69,6 +74,44 @@ export class AiAnalysisProcessor extends WorkerHost {
 
     this.logger.log(`Análise de ${bookName} ${chapterNumber} concluída e gravada em ai_cache.`);
     return result;
+  }
+
+  private async processChapterQuiz(job: Job): Promise<{ quizId: string }> {
+    const { bookId, bookName, chapterNumber, versesText, verseCount } = job.data;
+
+    const questions = await this.geminiService.generateChapterQuiz(
+      bookName,
+      chapterNumber,
+      versesText,
+      verseCount,
+    );
+
+    // Keep the first quiz if two jobs raced: attempts already reference its id.
+    await this.db
+      .insert(quizzes)
+      .values({
+        bookId,
+        chapterNumber,
+        promptVersion: QUIZ_PROMPT_VERSION,
+        model: this.geminiService.model,
+        questions,
+      })
+      .onConflictDoNothing();
+
+    const [quiz] = await this.db
+      .select({ id: quizzes.id })
+      .from(quizzes)
+      .where(
+        and(
+          eq(quizzes.bookId, bookId),
+          eq(quizzes.chapterNumber, chapterNumber),
+          eq(quizzes.promptVersion, QUIZ_PROMPT_VERSION),
+        ),
+      )
+      .limit(1);
+
+    this.logger.log(`Quiz de ${bookName} ${chapterNumber} gravado.`);
+    return { quizId: quiz.id };
   }
 
   private async processBookReflection(job: Job): Promise<BookReflectionResult> {
