@@ -11,7 +11,7 @@
 [![PostgreSQL 16](https://img.shields.io/badge/Database-PostgreSQL%2016%20(RLS%20Native)-336791.svg?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![BullMQ & Redis](https://img.shields.io/badge/Queues-BullMQ%20%2B%20Redis%207-DC382D.svg?style=flat-square&logo=redis&logoColor=white)](https://bullmq.io/)
 [![Google Gemini AI](https://img.shields.io/badge/AI%20Engine-Google%20Gemini%202.5%20Flash-4285F4.svg?style=flat-square&logo=google&logoColor=white)](https://ai.google.dev/)
-[![Tests: 62 Passing](https://img.shields.io/badge/Tests-62%20Passing-059669.svg?style=flat-square&logo=jest&logoColor=white)](https://jestjs.io/)
+[![Tests: 128 Passing](https://img.shields.io/badge/Tests-128%20Passing-059669.svg?style=flat-square&logo=jest&logoColor=white)](https://jestjs.io/)
 [![Turborepo](https://img.shields.io/badge/Monorepo-Turborepo-000000.svg?style=flat-square&logo=turborepo&logoColor=white)](https://turbo.build/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
@@ -30,6 +30,23 @@
 **AI-Powered Scripture & Exegesis Engine** is a full-stack, enterprise-grade research platform built to handle deep semantic textual study, synchronized user annotations, and on-demand theological exegesis without connection starvation or data leakage.
 
 Architected as a TypeScript monorepo with **Turborepo**, it features a reactive **SvelteKit 2 (Svelte 5 Runes)** frontend and a modular **NestJS 10** backend gateway, delegating heavy LLM inferences to background **BullMQ workers** and user data isolation directly to the **PostgreSQL database kernel**.
+
+---
+
+## 📚 Study Method
+
+Beyond reading, the app guides a study cycle grounded in learning science: *practice testing* and *spaced repetition* are the highest-utility techniques ([Dunlosky et al., 2013](https://www.psychologicalscience.org/news/releases/which-study-strategies-make-the-grade.html)), while highlighting and re-reading are low-utility, so highlights serve observation and retention comes from recall.
+
+| Step | Feature |
+|---|---|
+| **Observe** | Semantic highlights (person, place, repetition, promise, sequence, contrast) and reading progress per chapter |
+| **Interpret** | Original-language words (Hebrew/Greek) with Strong's numbers, morphology and lexicon entries (STEPBible, CC BY 4.0) |
+| **Explain** | *Explain in your own words*, then AI feedback anchored in the chapter text (what you captured, what is missing, what to re-check) |
+| **Test** | AI-generated chapter quiz validated with zod and graded on the server (the answer key is never sent before grading) |
+| **Review** | Spaced repetition (SM-2): missed quiz questions and chosen verses come back at the right time |
+| **Conclude** | Book completion card: procedural SVG art per literary genre, study stats, PNG export |
+
+AI output is never invented as a fallback: without a key or with invalid output the job fails visibly and the learner's text is kept.
 
 ---
 
@@ -113,6 +130,13 @@ bible-study-app/
 │   │   │   ├── bible/           # Book catalog, chapter pagination, and verse streaming
 │   │   │   ├── search/          # GIN full-text search engine
 │   │   │   ├── notes/           # Personal annotations secured with PostgreSQL RLS
+│   │   │   ├── highlights/      # Semantic verse highlights (RLS)
+│   │   │   ├── progress/        # Reading progress (RLS)
+│   │   │   ├── original/        # Hebrew/Greek words and lexicon (STEPBible)
+│   │   │   ├── quiz/            # AI chapter quiz, graded on the server
+│   │   │   ├── reflections/     # "Explain in your own words" + AI feedback
+│   │   │   ├── review/          # Spaced repetition (SM-2)
+│   │   │   ├── completion/      # Stats for the book completion card
 │   │   │   ├── ai/              # Gemini AI integration, BullMQ worker, and SHA-256 cache
 │   │   │   └── study-aids/      # Cross-references, key themes, and book summaries
 │   │   └── test/                # Jest & Supertest integration test suites
@@ -159,8 +183,15 @@ Configure `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, and `GEMINI_API_KEY`.
 
 ### 4. Database Migrations & Seeds
 ```bash
-pnpm db:push
+pnpm db:migrate     # run as the database owner; see docs/architecture/data-model.md for role grants
 pnpm db:seed
+```
+Original-language data is optional: download the STEPBible-Data files and run
+`pnpm --filter api db:seed:original <dir> [--books=jn,mc]` (details in `docs/architecture/data-model.md`).
+
+When you change an API DTO, regenerate the typed contract used by the frontend (CI fails if it is stale):
+```bash
+pnpm contracts:generate
 ```
 
 ### 5. Launch Development Monorepo
@@ -173,7 +204,7 @@ pnpm dev
 
 ### 6. Run Test Suite
 ```bash
-# Execute full test suite (62 tests)
+# Execute full test suite (96 API + 32 frontend tests)
 pnpm test
 
 # Run tests with coverage report
