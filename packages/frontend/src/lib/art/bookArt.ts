@@ -53,6 +53,8 @@ export interface BookCardInput {
   quizAveragePercent: number | null;
   reflectionCount: number;
   highlightCount: number;
+  /** Curated key verse reference (e.g. "Jonas 2:9"); omitted from the card when absent. */
+  keyVerseReference?: string | null;
 }
 
 export const CARD_WIDTH = 600;
@@ -145,6 +147,7 @@ export function buildBookCardSvg(input: BookCardInput): string {
 <text x="300" y="535" font-size="${titleSize}" font-weight="700" fill="${p.ink}" text-anchor="middle">${xmlEscape(input.name)}</text>
 <rect x="${completed ? 205 : 150}" y="560" width="${completed ? 190 : 300}" height="38" rx="19" fill="${p.accent}"/>
 <text x="300" y="586" font-size="17" font-weight="700" letter-spacing="2" fill="${p.from}" text-anchor="middle">${xmlEscape(badge)}</text>
+${input.keyVerseReference ? `<text x="300" y="630" font-size="19" font-style="italic" fill="${p.ink}" fill-opacity="0.85" text-anchor="middle">★ ${xmlEscape(input.keyVerseReference)}</text>` : ''}
 ${stat(655, 'Capítulos lidos', `${input.chaptersRead}/${input.chapterCount}`, p)}
 ${stat(705, 'Média nos quizzes', quiz, p)}
 ${stat(755, 'Explicações escritas', String(input.reflectionCount), p)}
