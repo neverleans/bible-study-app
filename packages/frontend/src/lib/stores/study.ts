@@ -139,6 +139,17 @@ export async function removeHighlight(highlight: Highlight, authenticated: boole
   );
 }
 
+/** How many verses of a whole book the learner highlighted (guest: local, signed in: API). */
+export async function countBookHighlights(book: string, authenticated: boolean): Promise<number> {
+  if (!authenticated) return getGuestHighlights(book).length;
+  try {
+    return (await api.getHighlights({ book })).length;
+  } catch (err) {
+    console.warn('Falha ao contar destaques da nuvem:', err);
+    return 0;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Reading progress
 // ---------------------------------------------------------------------------
