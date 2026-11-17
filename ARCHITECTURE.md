@@ -95,6 +95,10 @@ captados, faltantes e equívocos com versículo), valida com zod e grava. O clie
 estado (`pending` → `done` | `failed`) por polling. O texto nunca se perde; sem chave ou com saída
 inválida o feedback fica `failed` com o motivo, sem feedback inventado.
 
+**Continuar estudando.** A home lê o progresso (local para visitante, `GET /progress` na conta) e
+mostra o próximo capítulo não lido depois do último lido, em ordem canônica
+(`lib/study/continue.ts`, função pura testada), além de uma barra de progresso em cada livro.
+
 **Cartão de conclusão do livro.** `/[book]/complete` junta o que o servidor sabe
 (`GET /completion/:book`: melhor nota do quiz por capítulo, explicações, cartões) com o que o
 visitante guarda localmente (capítulos lidos e destaques, via `stores/study.ts`). A arte é SVG
