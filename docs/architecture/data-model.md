@@ -55,7 +55,11 @@ Public data, no RLS.
 CC BY 4.0 (attribution shown in the UI). Import with
 `pnpm --filter api db:seed:original <dir> [--books=jn,mc]` after downloading the files from
 https://github.com/STEPBible/STEPBible-Data into an empty directory (names starting with `tahot`, `tagnt`,
-`tbesh`, `tbesg`). Only the base reading is imported (Leningrad / NA28). Pilot books so far: Jonas (`jn`) and Marcos (`mc`).
+`tbesh`, `tbesg`). Only the base reading is imported (Leningrad / NA28). All 66 books are imported (about 440 thousand words and
+21 thousand lexicon entries); `--books=` limits the import to some books. Files to download: `TAHOT` (Gen-Deu,
+Jos-Est, Job-Sng, Isa-Mal), `TAGNT` (Mat-Jhn, Act-Rev), `TBESH` and `TBESG`. Where Hebrew and English versification
+overlap, the two parts of one English verse are stored one after the other (positions are made strictly increasing).
+About 0.2% of the words point to a Strong number the lexicon does not list.
 The app role needs `GRANT SELECT ON original_words, lexicon_entries` (and `USAGE, SELECT` on `original_words_id_seq`
 for whoever runs the seed).
 

@@ -1,4 +1,10 @@
-import { parseTahotLine, parseTagntLine, parseLexiconLine } from './stepbible.parser';
+import {
+  parseTahotLine,
+  parseTagntLine,
+  parseLexiconLine,
+  createPositionAllocator,
+  type ParsedWord,
+} from './stepbible.parser';
 
 const tab = (...cols: string[]) => cols.join('\t');
 
@@ -91,11 +97,12 @@ describe('stepbible parser', () => {
       });
     });
 
-    it('keys disambiguated entries by dStrong and skips sub-meaning rows', () => {
+    it('keys every row by its own dStrong, sense and relation rows included', () => {
       const main = tab('H1697', 'H1697G =', 'H1697G', 'דָּבָר', 'da.var', 'H:N-M', 'word', ': word');
       const sub = tab('H1697', 'H1697H = a Meaning of', 'H1697G', 'דָּבָר', 'da.var', 'H:N-M', 'word: x', ': x');
       expect(parseLexiconLine(main)?.strong).toBe('H1697G');
-      expect(parseLexiconLine(sub)).toBeNull();
+      expect(parseLexiconLine(sub)?.strong).toBe('H1697H');
+      expect(parseLexiconLine(tab('H0430', 'H0430G = a Name of', 'H3068G', 'אֱלֹהִים', 'e.lo.him', 'H:N-M', 'God', ': God'))?.strong).toBe('H0430G');
     });
 
     it('marks Greek entries and ignores header lines', () => {
@@ -104,5 +111,27 @@ describe('stepbible parser', () => {
       ).toMatchObject({ lang: 'grc', lemma: 'λόγος' });
       expect(parseLexiconLine(tab('eStrong#', 'dStrong', 'uStrong'))).toBeNull();
     });
+  });
+});
+
+describe('createPositionAllocator', () => {
+  const word = (verseNumber: number, position: number) => ({ bookOrder: 4, chapterNumber: 26, verseNumber, position }) as ParsedWord;
+
+  it('keeps positions as they are when a verse has no overlap', () => {
+    const next = createPositionAllocator();
+    expect([1, 2, 3].map((p) => next(word(1, p)))).toEqual([1, 2, 3]);
+  });
+
+  it('stores a second part of the same verse after the first instead of colliding', () => {
+    const next = createPositionAllocator();
+    const first = [1, 2, 3].map((p) => next(word(1, p)));
+    const second = [1, 2].map((p) => next(word(1, p)));
+    expect([...first, ...second]).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('keeps gaps from skipped variant rows and does not mix verses', () => {
+    const next = createPositionAllocator();
+    expect([1, 3, 4].map((p) => next(word(1, p)))).toEqual([1, 3, 4]);
+    expect(next(word(2, 1))).toBe(1);
   });
 });

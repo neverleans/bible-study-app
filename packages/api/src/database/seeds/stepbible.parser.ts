@@ -135,9 +135,10 @@ const MAX_MEANING = 2000;
 /** One TBESH/TBESG lexicon line (eStrong, dStrong, uStrong, lemma, translit, morph, gloss, meaning). */
 export function parseLexiconLine(line: string): ParsedLexiconEntry | null {
   const cols = line.split('\t');
-  // The key is the disambiguated Strong in column 2 ("H1697G ="), which is what the word
-  // files use. Rows reading "H1697H = a Meaning of" are sub-meanings and are skipped.
-  const strong = /^([HG]\d{4}[A-Za-z]?)\s*=$/.exec((cols[1] ?? '').trim())?.[1];
+  // The key is the disambiguated Strong in column 2 ("H1697G ="), which is what the word files
+  // use. Sense rows ("H6213A = a Meaning of H6213H") and relation rows ("H0430G = a Name of ...")
+  // are real keys too: the word files point at them, so they must be kept.
+  const strong = /^([HG]\d{4}[A-Za-z]?)\s*=/.exec((cols[1] ?? '').trim())?.[1];
   if (!strong) return null;
   const lemma = clean(cols[3]);
   if (!lemma) return null;
@@ -151,5 +152,21 @@ export function parseLexiconLine(line: string): ParsedLexiconEntry | null {
     morph: clean(cols[5]),
     gloss: clean(cols[6]),
     meaning: meaning === '' ? null : meaning.slice(0, MAX_MEANING),
+  };
+}
+
+/**
+ * Where Hebrew and English versification overlap, STEPBible lists the words of one English verse
+ * under two references (e.g. "Num.26.1(25.19)" then "Num.26.1"), and each part restarts its word
+ * numbers at 1. Keep the file order and make positions strictly increasing within a verse, so the
+ * two parts are stored one after the other instead of colliding.
+ */
+export function createPositionAllocator(): (w: ParsedWord) => number {
+  const last = new Map<string, number>();
+  return (w) => {
+    const key = `${w.bookOrder}:${w.chapterNumber}:${w.verseNumber}`;
+    const position = Math.max(w.position, (last.get(key) ?? 0) + 1);
+    last.set(key, position);
+    return position;
   };
 }
