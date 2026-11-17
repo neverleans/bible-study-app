@@ -6,6 +6,7 @@
   import StudyAidsPanel from '$components/bible/StudyAidsPanel.svelte';
   import OriginalWordsPanel from '$components/bible/OriginalWordsPanel.svelte';
   import QuizPanel from '$components/study/QuizPanel.svelte';
+  import ReflectionPanel from '$components/study/ReflectionPanel.svelte';
   import { api } from '$api/client';
   import { onMount } from 'svelte';
   import { getGuestNotes, isAuthenticated } from '$stores/auth';
@@ -402,6 +403,9 @@
       onVerseClick={handleVerseClick}
     />
   </div>
+
+  <!-- Self-explanation: the learner writes first, then the AI compares with the text -->
+  <ReflectionPanel book={data.chapter.book.abbrev} chapter={data.chapter.number} />
 
   <!-- Retrieval practice: AI-generated quiz graded on the server -->
   <QuizPanel book={data.chapter.book.abbrev} chapter={data.chapter.number} />
