@@ -1507,6 +1507,156 @@
         ]
       }
     },
+    "/reflections": {
+      "post": {
+        "operationId": "ReflectionsController_create",
+        "summary": "Salvar “explique com suas palavras” e pedir feedback da IA (assíncrono)",
+        "description": "O texto é salvo na hora; o feedback chega depois (status pending → done | failed).",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReflectionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReflectionDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "reflections"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "get": {
+        "operationId": "ReflectionsController_list",
+        "summary": "Minhas explicações de um capítulo, as mais recentes primeiro",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "book",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "chapter",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReflectionDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "reflections"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/reflections/{id}": {
+      "get": {
+        "operationId": "ReflectionsController_get",
+        "summary": "Uma explicação e o estado do seu feedback",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReflectionDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Não encontrada ou de outra pessoa (RLS)"
+          }
+        },
+        "tags": [
+          "reflections"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/ai/chapter": {
       "post": {
         "operationId": "AiController_analyzeChapter",
@@ -2665,6 +2815,131 @@
         },
         "required": [
           "grade"
+        ]
+      },
+      "CreateReflectionDto": {
+        "type": "object",
+        "properties": {
+          "bookAbbrev": {
+            "type": "string",
+            "example": "jn"
+          },
+          "chapterNumber": {
+            "type": "number",
+            "example": 1
+          },
+          "content": {
+            "type": "string",
+            "description": "O que você entendeu do capítulo, com suas palavras",
+            "minLength": 40,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "bookAbbrev",
+          "chapterNumber",
+          "content"
+        ]
+      },
+      "MisunderstandingDto": {
+        "type": "object",
+        "properties": {
+          "claim": {
+            "type": "string"
+          },
+          "correction": {
+            "type": "string"
+          },
+          "verse": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "claim",
+          "correction",
+          "verse"
+        ]
+      },
+      "ReflectionFeedbackDto": {
+        "type": "object",
+        "properties": {
+          "coveredPoints": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "missingPoints": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "misunderstandings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MisunderstandingDto"
+            }
+          },
+          "encouragement": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "coveredPoints",
+          "missingPoints",
+          "misunderstandings",
+          "encouragement"
+        ]
+      },
+      "ReflectionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "bookAbbrev": {
+            "type": "string"
+          },
+          "chapterNumber": {
+            "type": "number"
+          },
+          "content": {
+            "type": "string"
+          },
+          "feedbackStatus": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "done",
+              "failed"
+            ]
+          },
+          "feedback": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ReflectionFeedbackDto"
+              }
+            ]
+          },
+          "feedbackError": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "bookAbbrev",
+          "chapterNumber",
+          "content",
+          "feedbackStatus",
+          "feedback",
+          "feedbackError",
+          "createdAt"
         ]
       },
       "AnalyzeChapterDto": {
