@@ -42,12 +42,13 @@ vai para o frontend.
 packages/
   api/src/
     modules/   auth, bible, search, notes, highlights, progress, original, quiz,
-               review, reflections, study-aids, ai
+               review, reflections, completion, study-aids, ai
     database/  schema/ (Drizzle), migrations/ (+ rollback/), seeds/
     common/    decorators, filtros
   frontend/src/
-    routes/    /, /[book], /[book]/[chapter], /notes, /search, /review
-    lib/       api/client.ts, stores/ (auth, study, theme, user), components/, types/
+    routes/    /, /[book], /[book]/[chapter], /[book]/complete, /notes, /search, /review
+    lib/       api/client.ts, art/ (arte procedural), stores/ (auth, study, theme, user),
+               components/, types/
 docs/          architecture/, decisions/ (ADRs), testing/, runbooks/
 scripts/       verify-fast.sh, verify.sh
 ```
@@ -93,6 +94,13 @@ corrige no servidor. Sem chave ou com saída inválida o job falha; não há qui
 captados, faltantes e equívocos com versículo), valida com zod e grava. O cliente acompanha o
 estado (`pending` → `done` | `failed`) por polling. O texto nunca se perde; sem chave ou com saída
 inválida o feedback fica `failed` com o motivo, sem feedback inventado.
+
+**Cartão de conclusão do livro.** `/[book]/complete` junta o que o servidor sabe
+(`GET /completion/:book`: melhor nota do quiz por capítulo, explicações, cartões) com o que o
+visitante guarda localmente (capítulos lidos e destaques, via `stores/study.ts`). A arte é SVG
+procedural e determinístico (`lib/art/bookArt.ts`: paleta e símbolo por gênero literário, padrão
+semeado pela ordem do livro), sem imagens hospedadas nem IA. O botão "Baixar PNG" desenha o SVG num
+canvas. O cartão aparece como "Em andamento" até todos os capítulos serem lidos.
 
 **Revisão espaçada.** Erros do quiz viram cartões `review_cards` no momento da correção, e o
 usuário pode adicionar um versículo com “Revisar depois”. `GET /review/due` lista o que venceu;
