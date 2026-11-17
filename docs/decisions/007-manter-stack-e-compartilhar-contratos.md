@@ -1,7 +1,7 @@
 # ADR 007 - Manter a stack atual e compartilhar contratos entre API e frontend
 
 **Data:** 2026-11-16
-**Status:** Proposta (aguarda aprovação do dono do projeto)
+**Status:** Aceita. Itens 1 e 2 da decisão implementados; item 3 (testes) em andamento
 
 ## Contexto
 
@@ -56,6 +56,15 @@ ausência de testes, conteúdo limitado) existem igualmente em qualquer framewor
    compartilhado; necessidade de um componente que só exista em React (ex.: editor rico);
    time com maioria de pessoas desenvolvedoras React; ou mudança de requisito para SEO
    fortemente dinâmico que o SSR atual não atenda.
+
+## Implementação
+
+- `pnpm contracts:generate` gera `packages/api/openapi.json` (sem Postgres/Redis) e os tipos do
+  frontend; o CI falha se estiverem desatualizados.
+- Provou-se que o contrato pega divergências: ao renomear um campo no contrato, o `svelte-check`
+  aponta todos os usos. Também revelou um bug real: o frontend gravava `undefined` como refresh
+  token após renovar a sessão (a API só devolve o access token). Corrigido com teste de regressão.
+- Ainda manual: o `data` das respostas de IA (a API o documenta como objeto aberto).
 
 ## Consequências
 

@@ -12,6 +12,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiHeader, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { HighlightsService } from './highlights.service';
 import { HighlightResponseDto, UpsertHighlightDto } from './dto/highlight.dto';
+import { SuccessResponseDto } from '../../common/dto/success-response.dto';
 import { CurrentUserId } from '../../common/decorators/current-user-id.decorator';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 
@@ -53,6 +54,7 @@ export class HighlightsController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Remover um destaque (somente o autor via RLS)' })
+  @ApiResponse({ status: 200, type: SuccessResponseDto })
   @ApiResponse({ status: 404, description: 'Destaque não encontrado ou acesso não autorizado' })
   deleteHighlight(
     @CurrentUserId() userId: string,

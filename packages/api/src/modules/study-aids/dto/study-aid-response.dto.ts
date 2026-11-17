@@ -23,6 +23,8 @@ export class StudyAidResponseDto {
   content: string;
 
   @ApiProperty({
+    type: 'object',
+    additionalProperties: true,
     example: { chapterNumber: 1, title: 'A Criação do Céu e da Terra' },
   })
   metadata: Record<string, unknown>;

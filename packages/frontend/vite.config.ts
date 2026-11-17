@@ -7,4 +7,8 @@ export default defineConfig({
     tailwindcss(),
     sveltekit(),
   ],
+  test: {
+    environment: 'node',
+    include: ['src/**/*.spec.ts'],
+  },
 });

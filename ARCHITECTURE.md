@@ -87,6 +87,14 @@ worker chama o Gemini, valida a saída com zod e grava em `quizzes`. O cliente a
 `GET /quiz/chapter/...` (polling). O gabarito só sai depois de `POST /quiz/:id/attempts`, que
 corrige no servidor. Sem chave ou com saída inválida o job falha; não há quiz inventado.
 
+## Contrato API ↔ frontend
+
+A NestJS é a fonte da verdade. `pnpm contracts:generate` (1) cria o app sem subir serviços e grava
+`packages/api/openapi.json` e (2) gera `packages/frontend/src/lib/api/schema.d.ts` com
+`openapi-typescript`. O frontend deriva seus tipos de lá (`lib/types/index.ts`), então mudar um DTO
+quebra a compilação onde ele é usado. O CI roda a geração e falha se os dois arquivos gerados não
+estiverem commitados. Ao mudar um DTO: `pnpm contracts:generate` e commitar o resultado.
+
 ## Decisões transversais
 
 - **Auth:** JWT de acesso (15 min) + refresh (7 dias); `OptionalJwtAuthGuard` aceita visitante
@@ -98,9 +106,10 @@ corrige no servidor. Sem chave ou com saída inválida o job falha; não há qui
 
 ## Dívidas e riscos conhecidos
 
-1. **Tipos duplicados à mão** entre API (DTOs) e frontend (`lib/types/index.ts`): risco de
-   divergência. Ver [ADR 007](docs/decisions/007-manter-stack-e-compartilhar-contratos.md).
-2. **Sem testes no frontend** (só `svelte-check`); falta E2E (Playwright).
+1. **Tipos de IA ainda à mão:** o contrato OpenAPI cobre tudo, exceto o `data` das respostas de
+   análise por IA (documentado como objeto aberto). Ver
+   [ADR 007](docs/decisions/007-manter-stack-e-compartilhar-contratos.md).
+2. **Poucos testes no frontend:** só o Vitest de `stores/auth` e o `svelte-check`; falta E2E (Playwright).
 3. **`overview.md` e ADRs antigos** citavam Prisma e WebSocket; a IA hoje usa polling.
 4. **Cache de IA** (`ai_cache`) sem versionamento de prompt e com fallback genérico nas análises
    de capítulo/livro (o quiz já não tem fallback).

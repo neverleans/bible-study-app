@@ -9,6 +9,7 @@
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "format": "prettier --write \"**/*.{ts,tsx,svelte,json,md}\"",
+    "contracts:generate": "pnpm --filter api openapi:generate && pnpm --filter @biblia/frontend gen:api",
     "db:migrate": "pnpm --filter api db:migrate",
     "db:seed": "pnpm --filter api db:seed",
     "docker:up": "docker compose up -d",

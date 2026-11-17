@@ -1,7 +1,8 @@
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { SwaggerModule } from '@nestjs/swagger';
+import { buildOpenApiConfig } from './swagger';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import helmet from 'helmet';
@@ -37,13 +38,7 @@ async function bootstrap() {
   });
 
   // Swagger
-  const config = new DocumentBuilder()
-    .setTitle('Bible Study API')
-    .setDescription('The Bible Study API description')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(app, buildOpenApiConfig());
   SwaggerModule.setup('api/docs', app, document);
 
   // Shutdown hooks

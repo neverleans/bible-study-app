@@ -1,0 +1,2436 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "HealthController_check",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The Health Check is successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "info": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "error": {
+                      "type": "object",
+                      "example": {},
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "details": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The Health Check is not successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "info": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "error": {
+                      "type": "object",
+                      "example": {
+                        "redis": {
+                          "status": "down",
+                          "message": "Could not connect"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "details": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        },
+                        "redis": {
+                          "status": "down",
+                          "message": "Could not connect"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bible/books": {
+      "get": {
+        "operationId": "BibleController_getBooks",
+        "summary": "Listar livros da Bíblia",
+        "parameters": [
+          {
+            "name": "testament",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por Antigo (OT) ou Novo (NT) Testamento",
+            "schema": {
+              "enum": [
+                "OT",
+                "NT"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "bible"
+        ]
+      }
+    },
+    "/bible/books/{abbrev}": {
+      "get": {
+        "operationId": "BibleController_getBook",
+        "summary": "Obter detalhes de um livro",
+        "parameters": [
+          {
+            "name": "abbrev",
+            "required": true,
+            "in": "path",
+            "description": "Abreviação do livro (ex: gn, mt)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Livro não encontrado"
+          }
+        },
+        "tags": [
+          "bible"
+        ]
+      }
+    },
+    "/bible/books/{abbrev}/chapters/{number}": {
+      "get": {
+        "operationId": "BibleController_getChapter",
+        "summary": "Obter versículos de um capítulo",
+        "parameters": [
+          {
+            "name": "abbrev",
+            "required": true,
+            "in": "path",
+            "description": "Abreviação do livro (ex: gn, mt)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "number",
+            "required": true,
+            "in": "path",
+            "description": "Número do capítulo",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChapterResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Capítulo ou livro não encontrado"
+          }
+        },
+        "tags": [
+          "bible"
+        ]
+      }
+    },
+    "/search": {
+      "get": {
+        "operationId": "SearchController_search",
+        "summary": "Busca textual em toda a Bíblia com ranking e destaque",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "description": "Termo de busca",
+            "schema": {
+              "example": "amor",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Página de resultados",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Itens por página",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "testament",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por testamento",
+            "schema": {
+              "enum": [
+                "OT",
+                "NT"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "book",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por abreviação do livro (ex: gn, mt)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "search"
+        ]
+      }
+    },
+    "/notes": {
+      "get": {
+        "operationId": "NotesController_getNotes",
+        "summary": "Listar notas do usuário autenticado (protegidas por RLS)",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário para isolamento estrito via PostgreSQL Row-Level Security (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "book",
+            "required": false,
+            "in": "query",
+            "description": "Abreviação do livro (ex: gn)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "chapter",
+            "required": false,
+            "in": "query",
+            "description": "Número do capítulo",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "verse",
+            "required": false,
+            "in": "query",
+            "description": "Número do versículo",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NoteResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "notes"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "NotesController_createNote",
+        "summary": "Criar uma nova nota de estudo para um versículo",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário para isolamento estrito via PostgreSQL Row-Level Security (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateNoteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "notes"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/notes/{id}": {
+      "put": {
+        "operationId": "NotesController_updateNote",
+        "summary": "Atualizar conteúdo de uma nota (somente o autor via RLS)",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário para isolamento estrito via PostgreSQL Row-Level Security (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNoteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nota não encontrada ou acesso não autorizado"
+          }
+        },
+        "tags": [
+          "notes"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "NotesController_deleteNote",
+        "summary": "Excluir uma nota (somente o autor via RLS)",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário para isolamento estrito via PostgreSQL Row-Level Security (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Nota excluída com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nota não encontrada ou acesso não autorizado"
+          }
+        },
+        "tags": [
+          "notes"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "summary": "Criar uma nova conta de usuário para salvar anotações na nuvem",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "summary": "Autenticar com e-mail e senha",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refresh",
+        "summary": "Renovar o Access Token utilizando o Refresh Token",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Novo access token gerado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessTokenResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "operationId": "AuthController_getProfile",
+        "summary": "Obter dados do perfil do usuário autenticado",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/highlights": {
+      "get": {
+        "operationId": "HighlightsController_getHighlights",
+        "summary": "Listar destaques do usuário (protegidos por RLS)",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "book",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "chapter",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HighlightResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "highlights"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "put": {
+        "operationId": "HighlightsController_upsertHighlight",
+        "summary": "Criar ou trocar a cor do destaque de um versículo",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertHighlightDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HighlightResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "highlights"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/highlights/{id}": {
+      "delete": {
+        "operationId": "HighlightsController_deleteHighlight",
+        "summary": "Remover um destaque (somente o autor via RLS)",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Destaque não encontrado ou acesso não autorizado"
+          }
+        },
+        "tags": [
+          "highlights"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/progress": {
+      "get": {
+        "operationId": "ProgressController_getProgress",
+        "summary": "Listar capítulos lidos (protegidos por RLS)",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "book",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProgressResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "progress"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "put": {
+        "operationId": "ProgressController_markRead",
+        "summary": "Marcar um capítulo como lido (idempotente)",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkChapterReadDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgressResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "progress"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/progress/{book}/{chapter}": {
+      "delete": {
+        "operationId": "ProgressController_unmarkRead",
+        "summary": "Desmarcar um capítulo como lido",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "book",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "chapter",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Capítulo não estava marcado"
+          }
+        },
+        "tags": [
+          "progress"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/original/{book}/{chapter}": {
+      "get": {
+        "operationId": "OriginalController_getChapter",
+        "summary": "Palavras originais (hebraico/grego) de um capítulo, com Strong e morfologia",
+        "description": "Dados: STEPBible (Tyndale House), CC BY 4.0. Versificação igual à do texto em português.",
+        "parameters": [
+          {
+            "name": "book",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "chapter",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChapterOriginalDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "original"
+        ]
+      }
+    },
+    "/lexicon/{strong}": {
+      "get": {
+        "operationId": "OriginalController_getLexiconEntry",
+        "summary": "Verbete do léxico para um número de Strong estendido",
+        "parameters": [
+          {
+            "name": "strong",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LexiconEntryDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Verbete não encontrado"
+          }
+        },
+        "tags": [
+          "original"
+        ]
+      }
+    },
+    "/quiz/chapter/{book}/{chapter}": {
+      "get": {
+        "operationId": "QuizController_getChapterQuiz",
+        "summary": "Estado do quiz do capítulo (sem gabarito)",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "book",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "chapter",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChapterQuizStatusDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "quiz"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/quiz/chapter/{book}/{chapter}/generate": {
+      "post": {
+        "operationId": "QuizController_generate",
+        "summary": "Pedir a geração do quiz do capítulo pela IA (assíncrono, via fila)",
+        "description": "Se o quiz já existir, devolve-o. Senão enfileira o job e devolve status \"generating\".",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "book",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "chapter",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChapterQuizStatusDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "quiz"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/quiz/{quizId}/attempts": {
+      "post": {
+        "operationId": "QuizController_submitAttempt",
+        "summary": "Enviar respostas; a correção é feita no servidor",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "quizId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitAttemptDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttemptResultDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "quiz"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "get": {
+        "operationId": "QuizController_getAttempts",
+        "summary": "Minhas tentativas neste quiz (RLS)",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "quizId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttemptSummaryDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "quiz"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/ai/chapter": {
+      "post": {
+        "operationId": "AiController_analyzeChapter",
+        "summary": "Solicitar análise exegética e teológica de um capítulo da Bíblia",
+        "description": "Verifica primeiro o cache no PostgreSQL. Caso não exista, enfileira o processamento assíncrono via BullMQ e retorna o jobId para acompanhamento.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalyzeChapterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiStatusResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/ai/book": {
+      "post": {
+        "operationId": "AiController_reflectBook",
+        "summary": "Solicitar reflexão teológica panorâmica e esboço de um livro da Bíblia",
+        "description": "Verifica primeiro o cache no PostgreSQL. Caso não exista, enfileira o processamento assíncrono via BullMQ e retorna o jobId para acompanhamento.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReflectBookDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiStatusResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/ai/status/{jobId}": {
+      "get": {
+        "operationId": "AiController_getStatus",
+        "summary": "Consultar status ou resultado final de um processamento de IA",
+        "parameters": [
+          {
+            "name": "jobId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiStatusResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/study-aids/book/{abbrev}": {
+      "get": {
+        "operationId": "StudyAidsController_getStudyAidsByBook",
+        "summary": "Listar recursos de estudo (introdução, contexto, versículos-chave) de um livro",
+        "parameters": [
+          {
+            "name": "abbrev",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por tipo de recurso de estudo",
+            "schema": {
+              "enum": [
+                "summary",
+                "key_verse",
+                "cross_ref",
+                "context"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StudyAidResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "study-aids"
+        ]
+      }
+    },
+    "/study-aids/chapter/{abbrev}/{chapterNumber}": {
+      "get": {
+        "operationId": "StudyAidsController_getStudyAidsByChapter",
+        "summary": "Listar recursos de estudo, resumo e referências cruzadas de um capítulo específico",
+        "parameters": [
+          {
+            "name": "abbrev",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "chapterNumber",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StudyAidResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "study-aids"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Bible Study API",
+    "description": "The Bible Study API description",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "BookResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "abbrev": {
+            "type": "string",
+            "example": "gn"
+          },
+          "name": {
+            "type": "string",
+            "example": "Gênesis"
+          },
+          "testament": {
+            "type": "string",
+            "example": "OT",
+            "enum": [
+              "OT",
+              "NT"
+            ]
+          },
+          "chapterCount": {
+            "type": "number",
+            "example": 50
+          },
+          "order": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "id",
+          "abbrev",
+          "name",
+          "testament",
+          "chapterCount",
+          "order"
+        ]
+      },
+      "VerseDto": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "number",
+            "example": 1
+          },
+          "text": {
+            "type": "string",
+            "example": "No princípio criou Deus os céus e a terra."
+          }
+        },
+        "required": [
+          "number",
+          "text"
+        ]
+      },
+      "ChapterNavigationDto": {
+        "type": "object",
+        "properties": {
+          "bookAbbrev": {
+            "type": "string",
+            "example": "gn"
+          },
+          "chapterNumber": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "bookAbbrev",
+          "chapterNumber"
+        ]
+      },
+      "ChapterResponseDto": {
+        "type": "object",
+        "properties": {
+          "book": {
+            "$ref": "#/components/schemas/BookResponseDto"
+          },
+          "number": {
+            "type": "number",
+            "example": 1
+          },
+          "verses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VerseDto"
+            }
+          },
+          "prevChapter": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ChapterNavigationDto"
+              }
+            ]
+          },
+          "nextChapter": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ChapterNavigationDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "book",
+          "number",
+          "verses",
+          "prevChapter",
+          "nextChapter"
+        ]
+      },
+      "SearchResultItemDto": {
+        "type": "object",
+        "properties": {
+          "verseId": {
+            "type": "number",
+            "example": 1
+          },
+          "bookName": {
+            "type": "string",
+            "example": "Gênesis"
+          },
+          "bookAbbrev": {
+            "type": "string",
+            "example": "gn"
+          },
+          "testament": {
+            "type": "string",
+            "example": "OT"
+          },
+          "chapterNumber": {
+            "type": "number",
+            "example": 1
+          },
+          "verseNumber": {
+            "type": "number",
+            "example": 1
+          },
+          "text": {
+            "type": "string",
+            "example": "No princípio criou Deus os céus e a terra."
+          },
+          "highlight": {
+            "type": "string",
+            "example": "No princípio criou <mark>Deus</mark> os céus e a terra."
+          }
+        },
+        "required": [
+          "verseId",
+          "bookName",
+          "bookAbbrev",
+          "testament",
+          "chapterNumber",
+          "verseNumber",
+          "text",
+          "highlight"
+        ]
+      },
+      "SearchResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 263
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 14
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchResultItemDto"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "page",
+          "limit",
+          "totalPages",
+          "results"
+        ]
+      },
+      "NoteResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          "userId": {
+            "type": "string",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          "bookAbbrev": {
+            "type": "string",
+            "example": "gn"
+          },
+          "bookName": {
+            "type": "string",
+            "example": "Gênesis"
+          },
+          "chapterNumber": {
+            "type": "number",
+            "example": 1
+          },
+          "verseNumber": {
+            "type": "number",
+            "example": 1
+          },
+          "content": {
+            "type": "string",
+            "example": "Reflexão sobre a criação..."
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-27T10:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-09-27T10:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "bookAbbrev",
+          "bookName",
+          "chapterNumber",
+          "verseNumber",
+          "content",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateNoteDto": {
+        "type": "object",
+        "properties": {
+          "bookAbbrev": {
+            "type": "string",
+            "description": "Abreviação do livro",
+            "example": "gn"
+          },
+          "chapterNumber": {
+            "type": "number",
+            "description": "Número do capítulo",
+            "example": 1
+          },
+          "verseNumber": {
+            "type": "number",
+            "description": "Número do versículo",
+            "example": 1
+          },
+          "content": {
+            "type": "string",
+            "description": "Conteúdo da nota",
+            "example": "Reflexão sobre a criação..."
+          }
+        },
+        "required": [
+          "bookAbbrev",
+          "chapterNumber",
+          "verseNumber",
+          "content"
+        ]
+      },
+      "UpdateNoteDto": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "Conteúdo atualizado da nota",
+            "example": "Nova reflexão..."
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
+      "SuccessResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "success"
+        ]
+      },
+      "RegisterDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "usuario@exemplo.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "SenhaForte123!",
+            "minLength": 6
+          },
+          "name": {
+            "type": "string",
+            "example": "João da Silva"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "UserProfileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          "email": {
+            "type": "string",
+            "example": "usuario@exemplo.com"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "example": "João da Silva"
+          },
+          "provider": {
+            "type": "string",
+            "example": "local"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-27T10:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "provider",
+          "createdAt"
+        ]
+      },
+      "AuthResponseDto": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/UserProfileDto"
+          },
+          "accessToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "refreshToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          }
+        },
+        "required": [
+          "user",
+          "accessToken",
+          "refreshToken"
+        ]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "usuario@exemplo.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "SenhaForte123!"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "RefreshTokenDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "description": "Refresh token retornado no login"
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "AccessTokenResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          }
+        },
+        "required": [
+          "accessToken"
+        ]
+      },
+      "HighlightResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "bookAbbrev": {
+            "type": "string"
+          },
+          "chapterNumber": {
+            "type": "number"
+          },
+          "verseNumber": {
+            "type": "number"
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "person",
+              "place",
+              "repeat",
+              "promise",
+              "sequence",
+              "contrast"
+            ]
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "bookAbbrev",
+          "chapterNumber",
+          "verseNumber",
+          "color",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpsertHighlightDto": {
+        "type": "object",
+        "properties": {
+          "bookAbbrev": {
+            "type": "string",
+            "description": "Abreviação do livro",
+            "example": "jn"
+          },
+          "chapterNumber": {
+            "type": "number",
+            "example": 1
+          },
+          "verseNumber": {
+            "type": "number",
+            "example": 3
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "person",
+              "place",
+              "repeat",
+              "promise",
+              "sequence",
+              "contrast"
+            ],
+            "example": "person"
+          }
+        },
+        "required": [
+          "bookAbbrev",
+          "chapterNumber",
+          "verseNumber",
+          "color"
+        ]
+      },
+      "ProgressResponseDto": {
+        "type": "object",
+        "properties": {
+          "bookAbbrev": {
+            "type": "string"
+          },
+          "chapterNumber": {
+            "type": "number"
+          },
+          "completedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "bookAbbrev",
+          "chapterNumber",
+          "completedAt"
+        ]
+      },
+      "MarkChapterReadDto": {
+        "type": "object",
+        "properties": {
+          "bookAbbrev": {
+            "type": "string",
+            "example": "jn"
+          },
+          "chapterNumber": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "bookAbbrev",
+          "chapterNumber"
+        ]
+      },
+      "OriginalWordDto": {
+        "type": "object",
+        "properties": {
+          "position": {
+            "type": "number"
+          },
+          "surface": {
+            "type": "string",
+            "description": "Palavra em hebraico ou grego"
+          },
+          "transliteration": {
+            "type": "string",
+            "nullable": true
+          },
+          "gloss": {
+            "type": "string",
+            "nullable": true,
+            "description": "Glosa em inglês (STEPBible)"
+          },
+          "strong": {
+            "type": "string",
+            "nullable": true,
+            "description": "Strong estendido, ex.: H1697G"
+          },
+          "morph": {
+            "type": "string",
+            "nullable": true
+          },
+          "lemma": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "position",
+          "surface",
+          "transliteration",
+          "gloss",
+          "strong",
+          "morph",
+          "lemma"
+        ]
+      },
+      "OriginalVerseDto": {
+        "type": "object",
+        "properties": {
+          "verseNumber": {
+            "type": "number"
+          },
+          "words": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OriginalWordDto"
+            }
+          }
+        },
+        "required": [
+          "verseNumber",
+          "words"
+        ]
+      },
+      "ChapterOriginalDto": {
+        "type": "object",
+        "properties": {
+          "bookAbbrev": {
+            "type": "string"
+          },
+          "chapterNumber": {
+            "type": "number"
+          },
+          "lang": {
+            "type": "string",
+            "enum": [
+              "heb",
+              "grc"
+            ]
+          },
+          "available": {
+            "type": "boolean",
+            "description": "false quando os originais deste livro ainda não foram importados"
+          },
+          "verses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OriginalVerseDto"
+            }
+          }
+        },
+        "required": [
+          "bookAbbrev",
+          "chapterNumber",
+          "lang",
+          "available",
+          "verses"
+        ]
+      },
+      "LexiconEntryDto": {
+        "type": "object",
+        "properties": {
+          "strong": {
+            "type": "string"
+          },
+          "lang": {
+            "type": "string",
+            "enum": [
+              "heb",
+              "grc"
+            ]
+          },
+          "lemma": {
+            "type": "string"
+          },
+          "transliteration": {
+            "type": "string",
+            "nullable": true
+          },
+          "morph": {
+            "type": "string",
+            "nullable": true
+          },
+          "gloss": {
+            "type": "string",
+            "nullable": true
+          },
+          "meaning": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "strong",
+          "lang",
+          "lemma",
+          "transliteration",
+          "morph",
+          "gloss",
+          "meaning"
+        ]
+      },
+      "PublicQuizQuestionDto": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "verse": {
+            "type": "number",
+            "description": "Versículo em que a pergunta se baseia"
+          }
+        },
+        "required": [
+          "question",
+          "options",
+          "verse"
+        ]
+      },
+      "ChapterQuizStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "none",
+              "generating",
+              "ready",
+              "failed"
+            ]
+          },
+          "quizId": {
+            "type": "string"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicQuizQuestionDto"
+            }
+          },
+          "error": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "SubmitAttemptDto": {
+        "type": "object",
+        "properties": {
+          "answers": {
+            "description": "Índice da alternativa escolhida em cada pergunta, na ordem",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "answers"
+        ]
+      },
+      "QuestionResultDto": {
+        "type": "object",
+        "properties": {
+          "questionIndex": {
+            "type": "number"
+          },
+          "chosenIndex": {
+            "type": "number"
+          },
+          "correctIndex": {
+            "type": "number"
+          },
+          "correct": {
+            "type": "boolean"
+          },
+          "explanation": {
+            "type": "string"
+          },
+          "verse": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "questionIndex",
+          "chosenIndex",
+          "correctIndex",
+          "correct",
+          "explanation",
+          "verse"
+        ]
+      },
+      "AttemptResultDto": {
+        "type": "object",
+        "properties": {
+          "attemptId": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionResultDto"
+            }
+          }
+        },
+        "required": [
+          "attemptId",
+          "score",
+          "total",
+          "results"
+        ]
+      },
+      "AttemptSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "score",
+          "total",
+          "createdAt"
+        ]
+      },
+      "AnalyzeChapterDto": {
+        "type": "object",
+        "properties": {
+          "bookAbbrev": {
+            "type": "string",
+            "description": "Abreviação do livro bíblico (ex: gn, mt, sl)",
+            "example": "gn"
+          },
+          "chapterNumber": {
+            "type": "number",
+            "description": "Número do capítulo bíblico",
+            "example": 1
+          }
+        },
+        "required": [
+          "bookAbbrev",
+          "chapterNumber"
+        ]
+      },
+      "AiStatusResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Estado atual do processamento da análise",
+            "example": "completed",
+            "enum": [
+              "completed",
+              "queued",
+              "active",
+              "waiting",
+              "failed"
+            ]
+          },
+          "jobId": {
+            "type": "string",
+            "description": "ID do job na fila BullMQ quando em processamento"
+          },
+          "cached": {
+            "type": "boolean",
+            "description": "Indica se a resposta foi obtida instantaneamente do cache"
+          },
+          "data": {
+            "type": "object",
+            "description": "Dados estruturados da análise quando concluída"
+          },
+          "error": {
+            "type": "string",
+            "description": "Mensagem de erro caso o processamento tenha falhado"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "ReflectBookDto": {
+        "type": "object",
+        "properties": {
+          "bookAbbrev": {
+            "type": "string",
+            "description": "Abreviação do livro bíblico (ex: rm, jo, ap)",
+            "example": "rm"
+          }
+        },
+        "required": [
+          "bookAbbrev"
+        ]
+      },
+      "StudyAidResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "bookId": {
+            "type": "number",
+            "example": 1
+          },
+          "bookAbbrev": {
+            "type": "string",
+            "example": "gn"
+          },
+          "bookName": {
+            "type": "string",
+            "example": "Gênesis"
+          },
+          "type": {
+            "type": "string",
+            "example": "summary",
+            "enum": [
+              "summary",
+              "key_verse",
+              "cross_ref",
+              "context"
+            ]
+          },
+          "content": {
+            "type": "string",
+            "example": "A Criação do cosmos em seis dias..."
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "example": {
+              "chapterNumber": 1,
+              "title": "A Criação do Céu e da Terra"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-09-27T10:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "bookId",
+          "bookAbbrev",
+          "bookName",
+          "type",
+          "content",
+          "metadata",
+          "createdAt"
+        ]
+      }
+    }
+  }
+}

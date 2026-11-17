@@ -4,7 +4,7 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { AuthResponseDto, UserProfileDto } from './dto/auth-response.dto';
+import { AccessTokenResponseDto, AuthResponseDto, UserProfileDto } from './dto/auth-response.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('auth')
@@ -30,7 +30,7 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Renovar o Access Token utilizando o Refresh Token' })
-  @ApiResponse({ status: 200, description: 'Novo access token gerado' })
+  @ApiResponse({ status: 200, type: AccessTokenResponseDto, description: 'Novo access token gerado' })
   async refresh(@Body() dto: RefreshTokenDto): Promise<{ accessToken: string }> {
     return this.authService.refresh(dto.refreshToken);
   }

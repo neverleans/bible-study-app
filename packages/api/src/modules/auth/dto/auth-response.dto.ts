@@ -7,7 +7,7 @@ export class UserProfileDto {
   @ApiProperty({ example: 'usuario@exemplo.com' })
   email: string;
 
-  @ApiPropertyOptional({ example: 'João da Silva' })
+  @ApiPropertyOptional({ type: String, nullable: true, example: 'João da Silva' })
   name?: string | null;
 
   @ApiProperty({ example: 'local' })
@@ -26,4 +26,9 @@ export class AuthResponseDto {
 
   @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' })
   refreshToken: string;
+}
+
+export class AccessTokenResponseDto {
+  @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' })
+  accessToken: string;
 }
