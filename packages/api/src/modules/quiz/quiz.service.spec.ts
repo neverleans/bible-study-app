@@ -91,10 +91,12 @@ describe('QuizService', () => {
   });
 
   it('grades on the server and stores the attempt', async () => {
-    mockDb.select.mockReturnValueOnce(limited([{ id: 'q1', questions }]));
+    mockDb.select.mockReturnValueOnce(limited([{ id: 'q1', bookId: 7, chapterNumber: 1, questions }]));
+    const cardValues = jest.fn().mockReturnThis();
     mockTx.insert
       .mockReturnValueOnce({ values: jest.fn().mockReturnThis(), onConflictDoNothing: jest.fn().mockResolvedValue([]) })
-      .mockReturnValueOnce({ values: jest.fn().mockReturnThis(), returning: jest.fn().mockResolvedValue([{ id: 'a1' }]) });
+      .mockReturnValueOnce({ values: jest.fn().mockReturnThis(), returning: jest.fn().mockResolvedValue([{ id: 'a1' }]) })
+      .mockReturnValueOnce({ values: cardValues, onConflictDoNothing: jest.fn().mockResolvedValue([]) });
 
     const result = await service.submitAttempt('user-1', 'q1', [1, 0]);
 
@@ -103,6 +105,32 @@ describe('QuizService', () => {
     expect(result.results[0]).toMatchObject({ correct: true, correctIndex: 1 });
     expect(result.results[1]).toMatchObject({ correct: false, correctIndex: 3, explanation: 'Porque d.' });
     expect(result.attemptId).toBe('a1');
+
+    // Only the missed question (index 1) becomes a review card, with the right answer on its back.
+    expect(cardValues).toHaveBeenCalledTimes(1);
+    const cards = cardValues.mock.calls[0][0];
+    expect(cards).toHaveLength(1);
+    expect(cards[0]).toMatchObject({
+      kind: 'quiz',
+      sourceKey: 'quiz:q1:1',
+      bookId: 7,
+      chapterNumber: 1,
+      verseNumber: 2,
+      prompt: 'P2?',
+      answer: 'd. Porque d.',
+    });
+  });
+
+  it('creates no review cards when every answer is correct', async () => {
+    mockDb.select.mockReturnValueOnce(limited([{ id: 'q1', bookId: 7, chapterNumber: 1, questions }]));
+    mockTx.insert
+      .mockReturnValueOnce({ values: jest.fn().mockReturnThis(), onConflictDoNothing: jest.fn().mockResolvedValue([]) })
+      .mockReturnValueOnce({ values: jest.fn().mockReturnThis(), returning: jest.fn().mockResolvedValue([{ id: 'a2' }]) });
+
+    const result = await service.submitAttempt('user-1', 'q1', [1, 3]);
+
+    expect(result.score).toBe(2);
+    expect(mockTx.insert).toHaveBeenCalledTimes(2); // user + attempt, no cards
   });
 
   it('rejects an attempt that does not answer every question', async () => {

@@ -1278,6 +1278,235 @@
         ]
       }
     },
+    "/review/summary": {
+      "get": {
+        "operationId": "ReviewController_summary",
+        "summary": "Quantos cartões estão para revisar agora",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewSummaryDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "review"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/review/due": {
+      "get": {
+        "operationId": "ReviewController_due",
+        "summary": "Cartões para revisar agora, os mais atrasados primeiro",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DueCardsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "review"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/review/cards": {
+      "post": {
+        "operationId": "ReviewController_createVerseCard",
+        "summary": "Adicionar um versículo à revisão espaçada (idempotente)",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVerseCardDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewCardDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "review"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/review/cards/{id}/grade": {
+      "post": {
+        "operationId": "ReviewController_grade",
+        "summary": "Avaliar a lembrança (errei/acertei/fácil) e reagendar o cartão",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GradeCardDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewCardDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "review"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/review/cards/{id}": {
+      "delete": {
+        "operationId": "ReviewController_remove",
+        "summary": "Remover um cartão da revisão",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "review"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/ai/chapter": {
       "post": {
         "operationId": "AiController_analyzeChapter",
@@ -2304,6 +2533,138 @@
           "score",
           "total",
           "createdAt"
+        ]
+      },
+      "ReviewSummaryDto": {
+        "type": "object",
+        "properties": {
+          "due": {
+            "type": "number",
+            "description": "Cartões para revisar agora"
+          },
+          "total": {
+            "type": "number",
+            "description": "Total de cartões"
+          }
+        },
+        "required": [
+          "due",
+          "total"
+        ]
+      },
+      "ReviewCardDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "verse",
+              "quiz"
+            ]
+          },
+          "bookAbbrev": {
+            "type": "string"
+          },
+          "bookName": {
+            "type": "string"
+          },
+          "chapterNumber": {
+            "type": "number"
+          },
+          "verseNumber": {
+            "type": "number",
+            "nullable": true
+          },
+          "prompt": {
+            "type": "string",
+            "description": "O que a pessoa tenta lembrar"
+          },
+          "answer": {
+            "type": "string",
+            "description": "Resposta mostrada depois de tentar lembrar"
+          },
+          "intervalDays": {
+            "type": "number"
+          },
+          "repetitions": {
+            "type": "number"
+          },
+          "dueAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "bookAbbrev",
+          "bookName",
+          "chapterNumber",
+          "verseNumber",
+          "prompt",
+          "answer",
+          "intervalDays",
+          "repetitions",
+          "dueAt"
+        ]
+      },
+      "DueCardsDto": {
+        "type": "object",
+        "properties": {
+          "totalDue": {
+            "type": "number"
+          },
+          "cards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReviewCardDto"
+            }
+          }
+        },
+        "required": [
+          "totalDue",
+          "cards"
+        ]
+      },
+      "CreateVerseCardDto": {
+        "type": "object",
+        "properties": {
+          "bookAbbrev": {
+            "type": "string",
+            "example": "jn"
+          },
+          "chapterNumber": {
+            "type": "number",
+            "example": 1
+          },
+          "verseNumber": {
+            "type": "number",
+            "example": 3
+          }
+        },
+        "required": [
+          "bookAbbrev",
+          "chapterNumber",
+          "verseNumber"
+        ]
+      },
+      "GradeCardDto": {
+        "type": "object",
+        "properties": {
+          "grade": {
+            "type": "string",
+            "enum": [
+              "again",
+              "good",
+              "easy"
+            ],
+            "description": "Errei / Acertei / Fácil"
+          }
+        },
+        "required": [
+          "grade"
         ]
       },
       "AnalyzeChapterDto": {

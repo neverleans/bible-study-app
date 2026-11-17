@@ -10,15 +10,36 @@
     initAuth,
     logout,
   } from '$stores/auth';
+  import { afterNavigate } from '$app/navigation';
+  import { api } from '$api/client';
   import AuthModal from '$components/auth/AuthModal.svelte';
 
   let { children } = $props();
   let isDark = $state(false);
+  let dueCount = $state(0);
+
+  async function refreshDueCount() {
+    try {
+      dueCount = (await api.getReviewSummary()).due;
+    } catch {
+      dueCount = 0; // the badge is a convenience; never block the page on it
+    }
+  }
+
+  afterNavigate(() => {
+    refreshDueCount();
+  });
 
   onMount(async () => {
     isDark = localStorage.getItem('theme') === 'dark';
     updateTheme();
     await initAuth();
+  });
+
+  // Cards change on /review and on chapter pages; those dispatch this event.
+  $effect(() => {
+    window.addEventListener('review-changed', refreshDueCount);
+    return () => window.removeEventListener('review-changed', refreshDueCount);
   });
 
   function toggleTheme() {
@@ -95,6 +116,17 @@
       >
         <span>📝</span>
         <span>Anotações</span>
+      </a>
+      <a
+        href="/review"
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors hover:border-blue-500 cursor-pointer"
+        style="background-color: var(--color-surface); border-color: var(--color-border); color: var(--color-text)"
+      >
+        <span>🧠</span>
+        <span>Revisão</span>
+        {#if dueCount > 0}
+          <span class="px-1.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-600 text-white" aria-label="{dueCount} para revisar">{dueCount}</span>
+        {/if}
       </a>
       <a
         href="/search"

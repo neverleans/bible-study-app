@@ -71,6 +71,14 @@ AI-generated chapter quiz (shared, no RLS), unique (`bookId`, `chapterNumber`, `
 `id` uuid · `userId` FK · `quizId` FK · `answers` jsonb (chosen index per question) · `score` · `total` · `createdAt`.
 Grading happens on the server. Guests use the `x-user-id` header; attempts are not migrated to an account on login yet.
 
+### `review_cards` — RLS
+`id` uuid · `userId` FK · `bookId` FK · `chapterNumber` · `verseNumber` · `kind` (`verse` | `quiz`) · `sourceKey` ·
+`prompt` · `answer` · `ease` · `intervalDays` · `repetitions` · `dueAt` · `lastReviewedAt` · `createdAt`.
+Spaced-repetition cards scheduled with SM-2 (`modules/review/sm2.ts`, pure and unit tested; buttons map to
+quality 1/4/5). Unique (`userId`, `bookId`, `sourceKey`) makes creation idempotent: `verse:<chapter>:<verse>` for
+a verse the learner chose, `quiz:<quizId>:<questionIndex>` for a missed quiz question (created when the attempt is
+graded). Guests use the `x-user-id` header; cards are not migrated to an account on login yet.
+
 ### `study_aids`
 `id` · `bookId` FK · `type` (`summary | key_verse | cross_ref | context`) · `content` · `metadata` jsonb · `createdAt`.
 Curated content (seed); the chapter number lives in `metadata.chapterNumber`.
