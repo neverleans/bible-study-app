@@ -73,7 +73,7 @@ AI-generated chapter quiz (shared, no RLS), unique (`bookId`, `chapterNumber`, `
 
 ### `quiz_attempts` — RLS
 `id` uuid · `userId` FK · `quizId` FK · `answers` jsonb (chosen index per question) · `score` · `total` · `createdAt`.
-Grading happens on the server. Guests use the `x-user-id` header; attempts are not migrated to an account on login yet.
+Grading happens on the server. Guests use the `x-user-id` header; attempts move to the account on login (`POST /guest/claim`).
 
 ### `review_cards` — RLS
 `id` uuid · `userId` FK · `bookId` FK · `chapterNumber` · `verseNumber` · `kind` (`verse` | `quiz`) · `sourceKey` ·
@@ -81,7 +81,7 @@ Grading happens on the server. Guests use the `x-user-id` header; attempts are n
 Spaced-repetition cards scheduled with SM-2 (`modules/review/sm2.ts`, pure and unit tested; buttons map to
 quality 1/4/5). Unique (`userId`, `bookId`, `sourceKey`) makes creation idempotent: `verse:<chapter>:<verse>` for
 a verse the learner chose, `quiz:<quizId>:<questionIndex>` for a missed quiz question (created when the attempt is
-graded). Guests use the `x-user-id` header; cards are not migrated to an account on login yet.
+graded). Guests use the `x-user-id` header; cards move to the account on login (`POST /guest/claim`).
 
 ### `reflections` — RLS
 `id` uuid · `userId` FK · `bookId` FK · `chapterNumber` · `content` · `feedbackStatus` (`pending` | `done` | `failed`) ·
@@ -103,4 +103,6 @@ Curated content (seed); the chapter number lives in `metadata.chapterNumber`.
 ## Guest mode
 Unauthenticated users keep notes, highlights and reading progress in `localStorage`
 (`biblia_guest_notes`, `biblia_guest_highlights`, `biblia_guest_progress`); on login/register they are
-synced to the cloud (`stores/auth.ts`, `stores/study.ts`).
+synced to the cloud (`stores/auth.ts`, `stores/study.ts`). Quiz attempts, review cards and reflections live
+on the server under the guest id and are moved to the account by `POST /guest/claim` (read as the guest, write as the
+account, delete the guest copies, in one transaction). Only rows of real guest users (`<id>@local.dev`, no password) move.

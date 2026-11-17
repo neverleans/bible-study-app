@@ -76,8 +76,13 @@ e recursos de estudo.
 
 **Visitante e conta.** Sem login, notas, destaques e progresso ficam em `localStorage`. No
 login/cadastro são enviados para a conta e a tela recarrega os dados da nuvem
-(`stores/auth.ts`, `stores/study.ts`). Notas só vão à API quando autenticado; tentativas de quiz
-sempre vão à API, sob o ID de visitante, e **não** migram para a conta.
+(`stores/auth.ts`, `stores/study.ts`). Notas só vão à API quando autenticado; tentativas de quiz,
+explicações e cartões sempre vão à API, sob o ID de visitante. No login, `POST /guest/claim`
+(`modules/guest-claim`) move esses dados para a conta: lê como visitante, grava como a conta e apaga
+as cópias do visitante, numa transação (a RLS não permite outra forma). O ID de visitante é um UUID
+aleatório que só o navegador conhece; só linhas de um usuário-visitante de verdade (e-mail
+`<id>@local.dev`, sem senha) são movidas, nunca as de outra conta. Cartões que a conta já tem são mantidos.
+Limite: uma explicação cujo feedback da IA ainda está em andamento no momento do login perde o feedback.
 
 **Palavras originais.** `GET /original/:book/:chapter` devolve as palavras agrupadas por
 versículo (mesma versificação do texto em português); `GET /lexicon/:strong` devolve o verbete,
@@ -116,7 +121,7 @@ canvas. O cartão aparece como "Em andamento" até todos os capítulos serem lid
 **Revisão espaçada.** Erros do quiz viram cartões `review_cards` no momento da correção, e o
 usuário pode adicionar um versículo com “Revisar depois”. `GET /review/due` lista o que venceu;
 `POST /review/cards/:id/grade` (errei/acertei/fácil) reagenda com SM-2. A rota `/review` faz a
-sessão e o menu mostra quantos cartões vencem. Cartões de visitante não migram para a conta.
+sessão e o menu mostra quantos cartões vencem. Os cartões de visitante vão para a conta no login.
 
 ## Contrato API ↔ frontend
 
