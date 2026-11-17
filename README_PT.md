@@ -11,10 +11,27 @@
 [![BullMQ](https://img.shields.io/badge/BullMQ-5.0-orange)](https://bullmq.io/)
 [![Drizzle ORM](https://img.shields.io/badge/Drizzle_ORM-0.30-c5f74f)](https://orm.drizzle.team/)
 [![Turborepo](https://img.shields.io/badge/Turborepo-2.5-black?logo=turborepo)](https://turbo.build/)
-[![Tests](https://img.shields.io/badge/Tests-62%20Passing-brightgreen?logo=jest)](https://jestjs.io/)
+[![Tests](https://img.shields.io/badge/Tests-128%20Passing-brightgreen?logo=jest)](https://jestjs.io/)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
 > Plataforma web moderna de alta performance para leitura bíblica, exegese teológica, pesquisa contextual e anotações pessoais, com isolamento criptográfico por **PostgreSQL Row-Level Security (RLS)**, filas distribuídas com **BullMQ + Redis**, busca full-text com dicionário em português e análises hermenêuticas via **Google Gemini**.
+
+---
+
+## 📚 Método de Estudo
+
+Além de leitura, o app conduz um ciclo de estudo baseado em ciência da aprendizagem: *prática de recuperação* (quiz) e *prática espaçada* têm utilidade alta, enquanto grifar e reler têm utilidade baixa ([Dunlosky et al., 2013](https://www.psychologicalscience.org/news/releases/which-study-strategies-make-the-grade.html)). Por isso os destaques servem à observação, e a retenção vem de lembrar.
+
+| Etapa | Funcionalidade |
+|---|---|
+| **Observar** | Destaques semânticos (personagem, lugar, repetição, promessa, sequência, contraste) e progresso de leitura por capítulo |
+| **Interpretar** | Palavras no original (hebraico/grego) com Strong, morfologia e verbete do léxico (STEPBible, CC BY 4.0) |
+| **Explicar** | *Explique com suas palavras* e feedback da IA ancorado no texto do capítulo (o que captou, o que faltou, o que rever) |
+| **Testar** | Quiz do capítulo gerado por IA, validado com zod e corrigido no servidor (o gabarito só sai depois da correção) |
+| **Revisar** | Revisão espaçada (SM-2): erros do quiz e versículos escolhidos voltam no tempo certo |
+| **Concluir** | Cartão de conclusão do livro: arte SVG procedural por gênero literário, estatísticas e exportação em PNG |
+
+A IA nunca devolve conteúdo inventado como alternativa: sem chave ou com saída inválida o job falha de forma visível e o texto da pessoa é mantido.
 
 ---
 
@@ -163,13 +180,21 @@ docker compose up -d
 # 3. Configurar variáveis de ambiente
 cp packages/api/.env.example packages/api/.env
 
-# 4. Executar migrações do banco de dados e seeds
-pnpm db:push
+# 4. Executar migrações (como dono do banco; veja docs/architecture/data-model.md) e seeds
+pnpm db:migrate
 pnpm db:seed
 
 # 5. Iniciar ambiente de desenvolvimento
 pnpm dev
 ```
+
+---
+
+Quando mudar um DTO da API, regenere o contrato tipado usado pelo frontend (o CI falha se estiver desatualizado):
+```bash
+pnpm contracts:generate
+```
+Os dados de idiomas originais são opcionais; veja `docs/architecture/data-model.md` para baixar o STEPBible e importar.
 
 ---
 
