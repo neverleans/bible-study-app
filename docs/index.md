@@ -12,6 +12,7 @@
 - [004 - Redis + BullMQ](decisions/004-redis-bullmq.md)
 - [005 - All TypeScript](decisions/005-all-typescript.md)
 - [006 - Drizzle ORM & RLS](decisions/006-drizzle-orm-rls.md)
+- [007 - Manter a stack e compartilhar contratos](decisions/007-manter-stack-e-compartilhar-contratos.md)
 
 ## Testing
 - [Testing Strategy](testing/README.md)
