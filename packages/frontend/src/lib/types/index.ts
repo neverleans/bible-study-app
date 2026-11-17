@@ -43,6 +43,8 @@ export type ReviewGrade = Schemas['GradeCardDto']['grade'];
 
 export type Reflection = Schemas['ReflectionDto'];
 
+export type BookStats = Schemas['BookStatsDto'];
+
 export type User = Schemas['UserProfileDto'];
 export type AuthResponse = Schemas['AuthResponseDto'];
 export type AccessTokenResponse = Schemas['AccessTokenResponseDto'];

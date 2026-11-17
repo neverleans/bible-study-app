@@ -68,6 +68,16 @@
         </span>
       </div>
 
+      <a
+        href="/{data.book.abbrev}/complete"
+        class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-semibold cursor-pointer transition-all hover:shadow hover:border-blue-500"
+        style="background-color: var(--color-bg); border-color: var(--color-border)"
+        title="Ver o cartão de conclusão deste livro"
+      >
+        <span>🎴</span>
+        <span>Cartão do livro</span>
+      </a>
+
       <button
         onclick={() => (showReflectionModal = true)}
         class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-semibold cursor-pointer transition-all hover:shadow hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-400"

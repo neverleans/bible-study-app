@@ -477,6 +477,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/completion/{book}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** O que a pessoa fez neste livro (quiz, explicações, cartões) para o cartão de conclusão */
+        get: operations["CompletionController_getBookStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ai/chapter": {
         parameters: {
             query?: never;
@@ -911,6 +928,28 @@ export interface components {
             feedback: components["schemas"]["ReflectionFeedbackDto"] | null;
             feedbackError: string | null;
             createdAt: string;
+        };
+        ChapterQuizBestDto: {
+            chapterNumber: number;
+            /** @description Melhor nota entre as tentativas */
+            bestScore: number;
+            total: number;
+        };
+        BookStatsDto: {
+            bookAbbrev: string;
+            bookName: string;
+            /** @description Capítulos do livro */
+            chapterCount: number;
+            /** @description Melhor nota por capítulo com quiz tentado */
+            quizBestByChapter: components["schemas"]["ChapterQuizBestDto"][];
+            /** @description Média das melhores notas (0 a 100); 0 se não houver tentativas */
+            quizAveragePercent: number;
+            /** @description Explicações escritas neste livro */
+            reflectionCount: number;
+            /** @description Capítulos com pelo menos uma explicação */
+            reflectionChapters: number;
+            /** @description Cartões de revisão deste livro */
+            reviewCardCount: number;
         };
         AnalyzeChapterDto: {
             /**
@@ -1939,6 +1978,37 @@ export interface operations {
                 };
             };
             /** @description Não encontrada ou de outra pessoa (RLS) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CompletionController_getBookStats: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description ID do usuário (RLS) quando não autenticado por JWT */
+                "x-user-id"?: string;
+            };
+            path: {
+                book: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookStatsDto"];
+                };
+            };
+            /** @description Livro não encontrado */
             404: {
                 headers: {
                     [name: string]: unknown;

@@ -26,6 +26,7 @@ import type {
   ReviewSummary,
   ReviewGrade,
   Reflection,
+  BookStats,
 } from '$types';
 import { getCurrentUserId } from '$stores/user';
 
@@ -249,6 +250,11 @@ export class ApiClient {
 
   async getReflection(id: string): Promise<Reflection> {
     return this.get<Reflection>(`/reflections/${id}`);
+  }
+
+  // Book completion card stats
+  async getBookStats(book: string): Promise<BookStats> {
+    return this.get<BookStats>(`/completion/${encodeURIComponent(book)}`);
   }
 
   // AI Endpoints
