@@ -19,6 +19,7 @@ import {
   parseTagntLine,
   parseLexiconLine,
   ParsedWord,
+  createPositionAllocator,
   ParsedLexiconEntry,
 } from './stepbible.parser';
 
@@ -90,6 +91,7 @@ async function main() {
   let total = 0;
   for (const [prefix, parse] of parsers) {
     for (const file of findFiles(dir, prefix)) {
+      const nextPosition = createPositionAllocator();
       let batch: (typeof schema.originalWords.$inferInsert)[] = [];
       const flush = async () => {
         if (batch.length === 0) return;
@@ -124,7 +126,7 @@ async function main() {
           bookId: book.id,
           chapterNumber: w.chapterNumber,
           verseNumber: w.verseNumber,
-          position: w.position,
+          position: nextPosition(w),
           lang: w.lang,
           surface: w.surface,
           transliteration: w.transliteration,
