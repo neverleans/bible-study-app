@@ -42,7 +42,7 @@ vai para o frontend.
 packages/
   api/src/
     modules/   auth, bible, search, notes, highlights, progress, original, quiz,
-               review, study-aids, ai
+               review, reflections, study-aids, ai
     database/  schema/ (Drizzle), migrations/ (+ rollback/), seeds/
     common/    decorators, filtros
   frontend/src/
@@ -57,7 +57,8 @@ scripts/       verify-fast.sh, verify.sh
 Detalhes em [docs/architecture/data-model.md](docs/architecture/data-model.md).
 
 - **Texto:** `books`, `chapters`, `verses` (ACF em português, busca full-text `portuguese` com GIN).
-- **Do usuário, com RLS:** `notes`, `highlights`, `reading_progress`, `quiz_attempts`, `review_cards`.
+- **Do usuário, com RLS:** `notes`, `highlights`, `reading_progress`, `quiz_attempts`, `review_cards`,
+  `reflections`.
 - **Referência pública:** `original_words` e `lexicon_entries` (STEPBible, CC BY 4.0), `study_aids`
   (curado), `quizzes` (gerado por IA), `ai_cache`.
 
@@ -86,6 +87,12 @@ com fallback de sub-sentidos para o verbete principal. Livros não importados re
 worker chama o Gemini, valida a saída com zod e grava em `quizzes`. O cliente acompanha com
 `GET /quiz/chapter/...` (polling). O gabarito só sai depois de `POST /quiz/:id/attempts`, que
 corrige no servidor. Sem chave ou com saída inválida o job falha; não há quiz inventado.
+
+**Explique com suas palavras.** `POST /reflections` salva o texto da pessoa e enfileira o job
+`reflection-feedback`; o worker pede ao Gemini uma comparação com o texto do capítulo (pontos
+captados, faltantes e equívocos com versículo), valida com zod e grava. O cliente acompanha o
+estado (`pending` → `done` | `failed`) por polling. O texto nunca se perde; sem chave ou com saída
+inválida o feedback fica `failed` com o motivo, sem feedback inventado.
 
 **Revisão espaçada.** Erros do quiz viram cartões `review_cards` no momento da correção, e o
 usuário pode adicionar um versículo com “Revisar depois”. `GET /review/due` lista o que venceu;
