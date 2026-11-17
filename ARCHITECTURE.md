@@ -99,6 +99,9 @@ inválida o feedback fica `failed` com o motivo, sem feedback inventado.
 mostra o próximo capítulo não lido depois do último lido, em ordem canônica
 (`lib/study/continue.ts`, função pura testada), além de uma barra de progresso em cada livro.
 
+**Progresso geral.** `/progresso` mostra a porcentagem da Bíblia lida, os livros concluídos e o avanço
+por gênero (`lib/study/overview.ts`, função pura testada), com o mesmo progresso da home.
+
 **Cartão de conclusão do livro.** `/[book]/complete` junta o que o servidor sabe
 (`GET /completion/:book`: melhor nota do quiz por capítulo, explicações, cartões) com o que o
 visitante guarda localmente (capítulos lidos e destaques, via `stores/study.ts`). A arte é SVG

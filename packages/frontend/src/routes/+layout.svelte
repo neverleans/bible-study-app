@@ -129,6 +129,14 @@
         {/if}
       </a>
       <a
+        href="/progresso"
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors hover:border-blue-500 cursor-pointer"
+        style="background-color: var(--color-surface); border-color: var(--color-border); color: var(--color-text)"
+      >
+        <span>📈</span>
+        <span>Progresso</span>
+      </a>
+      <a
         href="/search"
         class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors hover:border-blue-500 cursor-pointer"
         style="background-color: var(--color-surface); border-color: var(--color-border); color: var(--color-text)"
