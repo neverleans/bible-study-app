@@ -8,6 +8,7 @@ export * from './reading-progress';
 export * from './original-words';
 export * from './quizzes';
 export * from './review-cards';
+export * from './reflections';
 export * from './study-aids';
 export * from './ai-cache';
 export * from './relations';

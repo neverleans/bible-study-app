@@ -1,11 +1,12 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as schema from '../../../database/schema';
 import { aiCache } from '../../../database/schema/ai-cache';
 import { quizzes } from '../../../database/schema/quizzes';
+import { reflections } from '../../../database/schema/reflections';
 import { QUIZ_PROMPT_VERSION } from '../../quiz/quiz.schemas';
 import { DRIZZLE } from '../../../database/database.module';
 import { GeminiService } from '../services/gemini.service';
@@ -35,6 +36,8 @@ export class AiAnalysisProcessor extends WorkerHost {
         return await this.processBookReflection(job);
       } else if (job.name === 'chapter-quiz') {
         return await this.processChapterQuiz(job);
+      } else if (job.name === 'reflection-feedback') {
+        return await this.processReflectionFeedback(job);
       } else {
         throw new Error(`Tipo de job desconhecido: ${job.name}`);
       }
@@ -112,6 +115,42 @@ export class AiAnalysisProcessor extends WorkerHost {
 
     this.logger.log(`Quiz de ${bookName} ${chapterNumber} gravado.`);
     return { quizId: quiz.id };
+  }
+
+  /**
+   * The worker has no HTTP user, so it sets the owner as the RLS user for the update. On the
+   * last failed attempt the reflection is marked failed so the UI stops waiting.
+   */
+  private async processReflectionFeedback(job: Job): Promise<{ reflectionId: string }> {
+    const { reflectionId, userId, bookName, chapterNumber, versesText, verseCount, learnerText } =
+      job.data;
+
+    const saveAs = async (values: Partial<typeof reflections.$inferInsert>) =>
+      this.db.transaction(async (tx) => {
+        await tx.execute(sql`SELECT set_config('app.current_user_id', ${userId}, true)`);
+        await tx.update(reflections).set(values).where(eq(reflections.id, reflectionId));
+      });
+
+    try {
+      const feedback = await this.geminiService.generateReflectionFeedback(
+        bookName,
+        chapterNumber,
+        versesText,
+        verseCount,
+        learnerText,
+      );
+      await saveAs({ feedback, feedbackStatus: 'done', feedbackError: null });
+      return { reflectionId };
+    } catch (error) {
+      const isLastAttempt = job.attemptsMade + 1 >= (job.opts.attempts ?? 1);
+      if (isLastAttempt) {
+        await saveAs({
+          feedbackStatus: 'failed',
+          feedbackError: error instanceof Error ? error.message : String(error),
+        });
+      }
+      throw error;
+    }
   }
 
   private async processBookReflection(job: Job): Promise<BookReflectionResult> {

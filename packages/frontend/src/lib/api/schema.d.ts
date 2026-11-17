@@ -439,6 +439,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/reflections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Minhas explicações de um capítulo, as mais recentes primeiro */
+        get: operations["ReflectionsController_list"];
+        put?: never;
+        /**
+         * Salvar “explique com suas palavras” e pedir feedback da IA (assíncrono)
+         * @description O texto é salvo na hora; o feedback chega depois (status pending → done | failed).
+         */
+        post: operations["ReflectionsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reflections/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Uma explicação e o estado do seu feedback */
+        get: operations["ReflectionsController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ai/chapter": {
         parameters: {
             query?: never;
@@ -843,6 +881,36 @@ export interface components {
              * @enum {string}
              */
             grade: "again" | "good" | "easy";
+        };
+        CreateReflectionDto: {
+            /** @example jn */
+            bookAbbrev: string;
+            /** @example 1 */
+            chapterNumber: number;
+            /** @description O que você entendeu do capítulo, com suas palavras */
+            content: string;
+        };
+        MisunderstandingDto: {
+            claim: string;
+            correction: string;
+            verse: number;
+        };
+        ReflectionFeedbackDto: {
+            coveredPoints: string[];
+            missingPoints: string[];
+            misunderstandings: components["schemas"]["MisunderstandingDto"][];
+            encouragement: string;
+        };
+        ReflectionDto: {
+            id: string;
+            bookAbbrev: string;
+            chapterNumber: number;
+            content: string;
+            /** @enum {string} */
+            feedbackStatus: "pending" | "done" | "failed";
+            feedback: components["schemas"]["ReflectionFeedbackDto"] | null;
+            feedbackError: string | null;
+            createdAt: string;
         };
         AnalyzeChapterDto: {
             /**
@@ -1794,6 +1862,88 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuccessResponseDto"];
                 };
+            };
+        };
+    };
+    ReflectionsController_list: {
+        parameters: {
+            query: {
+                book: string;
+                chapter: number;
+            };
+            header?: {
+                /** @description ID do usuário (RLS) quando não autenticado por JWT */
+                "x-user-id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReflectionDto"][];
+                };
+            };
+        };
+    };
+    ReflectionsController_create: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description ID do usuário (RLS) quando não autenticado por JWT */
+                "x-user-id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateReflectionDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReflectionDto"];
+                };
+            };
+        };
+    };
+    ReflectionsController_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description ID do usuário (RLS) quando não autenticado por JWT */
+                "x-user-id"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReflectionDto"];
+                };
+            };
+            /** @description Não encontrada ou de outra pessoa (RLS) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

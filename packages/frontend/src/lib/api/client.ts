@@ -25,6 +25,7 @@ import type {
   DueCards,
   ReviewSummary,
   ReviewGrade,
+  Reflection,
 } from '$types';
 import { getCurrentUserId } from '$stores/user';
 
@@ -235,6 +236,19 @@ export class ApiClient {
 
   async gradeReviewCard(id: string, grade: ReviewGrade): Promise<ReviewCard> {
     return this.post<ReviewCard>(`/review/cards/${id}/grade`, { grade });
+  }
+
+  // "Explain it in your own words" with AI feedback
+  async createReflection(book: string, chapter: number, content: string): Promise<Reflection> {
+    return this.post<Reflection>('/reflections', { bookAbbrev: book, chapterNumber: chapter, content });
+  }
+
+  async listReflections(book: string, chapter: number): Promise<Reflection[]> {
+    return this.get<Reflection[]>(`/reflections?book=${encodeURIComponent(book)}&chapter=${chapter}`);
+  }
+
+  async getReflection(id: string): Promise<Reflection> {
+    return this.get<Reflection>(`/reflections/${id}`);
   }
 
   // AI Endpoints
