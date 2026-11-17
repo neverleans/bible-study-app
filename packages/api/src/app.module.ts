@@ -10,6 +10,7 @@ import { NotesModule } from './modules/notes/notes.module';
 import { HighlightsModule } from './modules/highlights/highlights.module';
 import { ProgressModule } from './modules/progress/progress.module';
 import { OriginalModule } from './modules/original/original.module';
+import { QuizModule } from './modules/quiz/quiz.module';
 import { AiModule } from './modules/ai/ai.module';
 import { StudyAidsModule } from './modules/study-aids/study-aids.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -30,6 +31,7 @@ import { APP_GUARD } from '@nestjs/core';
     HighlightsModule,
     ProgressModule,
     OriginalModule,
+    QuizModule,
     AiModule,
     StudyAidsModule,
     AuthModule,

@@ -18,6 +18,8 @@ import type {
   ReadingProgressItem,
   ChapterOriginal,
   LexiconEntry,
+  ChapterQuizStatus,
+  QuizAttemptResult,
 } from '$types';
 import { getCurrentUserId } from '$stores/user';
 
@@ -198,6 +200,19 @@ export class ApiClient {
 
   async getLexiconEntry(strong: string): Promise<LexiconEntry> {
     return this.get<LexiconEntry>(`/lexicon/${encodeURIComponent(strong)}`);
+  }
+
+  // Quiz Endpoints (AI-generated, graded on the server)
+  async getChapterQuiz(book: string, chapter: number): Promise<ChapterQuizStatus> {
+    return this.get<ChapterQuizStatus>(`/quiz/chapter/${encodeURIComponent(book)}/${chapter}`);
+  }
+
+  async generateChapterQuiz(book: string, chapter: number): Promise<ChapterQuizStatus> {
+    return this.post<ChapterQuizStatus>(`/quiz/chapter/${encodeURIComponent(book)}/${chapter}/generate`, {});
+  }
+
+  async submitQuizAttempt(quizId: string, answers: number[]): Promise<QuizAttemptResult> {
+    return this.post<QuizAttemptResult>(`/quiz/${quizId}/attempts`, { answers });
   }
 
   // AI Endpoints

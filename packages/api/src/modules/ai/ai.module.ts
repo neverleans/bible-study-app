@@ -15,6 +15,6 @@ import { AiAnalysisProcessor } from './processors/ai-analysis.processor';
   ],
   controllers: [AiController],
   providers: [AiService, GeminiService, AiAnalysisProcessor],
-  exports: [AiService],
+  exports: [AiService, GeminiService],
 })
 export class AiModule {}

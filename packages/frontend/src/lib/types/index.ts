@@ -212,6 +212,27 @@ export interface ReadingProgressItem {
 
 
 
+export interface ChapterQuizStatus {
+  status: 'none' | 'generating' | 'ready' | 'failed';
+  quizId?: string;
+  questions?: { question: string; options: string[]; verse: number }[];
+  error?: string;
+}
+
+export interface QuizAttemptResult {
+  attemptId: string;
+  score: number;
+  total: number;
+  results: {
+    questionIndex: number;
+    chosenIndex: number;
+    correctIndex: number;
+    correct: boolean;
+    explanation: string;
+    verse: number;
+  }[];
+}
+
 export interface OriginalWord {
   position: number;
   surface: string;
