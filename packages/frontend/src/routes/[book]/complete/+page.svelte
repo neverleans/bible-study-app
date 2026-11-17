@@ -12,6 +12,7 @@
   let stats = $state<BookStats | null>(null);
   let chaptersRead = $state(0);
   let highlightCount = $state(0);
+  let keyVerseReference = $state<string | null>(null);
   let isLoading = $state(true);
   let error = $state<string | null>(null);
   let exportError = $state<string | null>(null);
@@ -26,6 +27,7 @@
           quizAveragePercent: stats.quizBestByChapter.length > 0 ? stats.quizAveragePercent : null,
           reflectionCount: stats.reflectionCount,
           highlightCount,
+          keyVerseReference,
         })
       : ''
   );
@@ -35,14 +37,17 @@
     isLoading = true;
     error = null;
     try {
-      const [s, read, hl] = await Promise.all([
+      const [s, read, hl, keyVerses] = await Promise.all([
         api.getBookStats(data.book.abbrev),
         loadReadChapters(data.book.abbrev, authenticated),
         countBookHighlights(data.book.abbrev, authenticated),
+        // The card is still useful without a key verse, so a failure here must not block it.
+        api.getStudyAidsByBook(data.book.abbrev, 'key_verse').catch(() => []),
       ]);
       stats = s;
       chaptersRead = new Set(read).size;
       highlightCount = hl;
+      keyVerseReference = keyVerses[0]?.metadata.reference ?? null;
     } catch {
       error = 'Não foi possível carregar os dados do cartão. Tente novamente.';
     } finally {

@@ -22,6 +22,12 @@ describe('genreOf', () => {
 });
 
 describe('buildBookCardSvg', () => {
+  it('shows the key verse reference only when provided, escaped', () => {
+    expect(buildBookCardSvg(base)).not.toContain('★');
+    const svg = buildBookCardSvg({ ...base, keyVerseReference: 'Jonas 2:9 <b>' });
+    expect(svg).toContain('★ Jonas 2:9 &lt;b&gt;');
+  });
+
   it('is deterministic: the same book always gets the same card', () => {
     expect(buildBookCardSvg(base)).toBe(buildBookCardSvg({ ...base }));
   });
