@@ -7,12 +7,12 @@
   import OriginalWordsPanel from '$components/bible/OriginalWordsPanel.svelte';
   import QuizPanel from '$components/study/QuizPanel.svelte';
   import ReflectionPanel from '$components/study/ReflectionPanel.svelte';
+  import ObserveBar from '$components/study/ObserveBar.svelte';
+  import ChapterFooterNav from '$components/bible/ChapterFooterNav.svelte';
   import { api } from '$api/client';
   import { onMount } from 'svelte';
   import { getGuestNotes, isAuthenticated } from '$stores/auth';
   import {
-    HIGHLIGHT_META,
-    HIGHLIGHT_COLORS,
     loadHighlights,
     setHighlight,
     removeHighlight,
@@ -333,54 +333,14 @@
     </div>
   </div>
 
-  <!-- Observe: semantic highlights for the selected verse -->
-  <div
-    class="px-4 py-3 rounded-xl border space-y-2"
-    style="background-color: var(--color-surface); border-color: var(--color-border)"
-  >
-    <div class="flex flex-wrap items-center gap-2">
-      <span class="text-xs font-semibold" style="color: var(--color-muted)">
-        🔍 Observar{selectedVerse !== null ? ` — versículo ${selectedVerse}` : ''}:
-      </span>
-      {#each HIGHLIGHT_COLORS as color}
-        {@const meta = HIGHLIGHT_META[color]}
-        <button
-          type="button"
-          onclick={() => handleHighlight(color)}
-          disabled={selectedVerse === null}
-          aria-pressed={selectedHighlight?.color === color}
-          title="{meta.label} — {meta.hint}"
-          class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed {selectedHighlight?.color === color
-            ? 'ring-2 ring-blue-500/60'
-            : ''}"
-          style="border-color: var(--color-border)"
-        >
-          <span class="w-3 h-3 rounded-full {meta.swatch}"></span>
-          {meta.label}
-        </button>
-      {/each}
-    </div>
-    {#if selectedVerse === null}
-      <p class="text-xs" style="color: var(--color-muted)">
-        Selecione um versículo e escolha o que você observou nele. Clique de novo na mesma cor para remover.
-      </p>
-    {:else}
-      <div class="flex flex-wrap items-center gap-2">
-        <button type="button" onclick={addToReview}
-          class="px-2.5 py-1 rounded-lg border text-xs font-medium cursor-pointer hover:border-blue-500"
-          style="border-color: var(--color-border)"
-          title="Cria um cartão de revisão espaçada com este versículo">
-          🧠 Revisar depois
-        </button>
-        {#if reviewMessage}
-          <span class="text-xs text-emerald-700 dark:text-emerald-300" aria-live="polite">{reviewMessage}</span>
-        {/if}
-      </div>
-    {/if}
-    {#if studyError}
-      <p class="text-xs text-red-600 dark:text-red-400" role="alert">{studyError}</p>
-    {/if}
-  </div>
+  <ObserveBar
+    {selectedVerse}
+    {selectedHighlight}
+    {reviewMessage}
+    {studyError}
+    onHighlight={handleHighlight}
+    onReview={addToReview}
+  />
 
   <!-- Interpret: original-language words of the selected verse -->
   <OriginalWordsPanel original={chapterOriginal} verseNumber={selectedVerse} />
@@ -425,32 +385,7 @@
     </button>
   </div>
 
-  <!-- Bottom Navigation Buttons -->
-  <div class="flex items-center justify-between pt-4 pb-8">
-    {#if data.chapter.prevChapter}
-      <a
-        href="/{data.chapter.prevChapter.bookAbbrev}/{data.chapter.prevChapter.chapterNumber}"
-        class="flex items-center gap-2 px-5 py-2.5 rounded-xl border font-medium text-sm transition-all hover:shadow hover:border-blue-500 cursor-pointer"
-        style="background-color: var(--color-surface); border-color: var(--color-border)"
-      >
-        <span>←</span>
-        <span>Capítulo Anterior</span>
-      </a>
-    {:else}
-      <div></div>
-    {/if}
-
-    {#if data.chapter.nextChapter}
-      <a
-        href="/{data.chapter.nextChapter.bookAbbrev}/{data.chapter.nextChapter.chapterNumber}"
-        class="flex items-center gap-2 px-5 py-2.5 rounded-xl border font-medium text-sm transition-all hover:shadow hover:border-blue-500 cursor-pointer"
-        style="background-color: var(--color-surface); border-color: var(--color-border)"
-      >
-        <span>Próximo Capítulo</span>
-        <span>→</span>
-      </a>
-    {/if}
-  </div>
+  <ChapterFooterNav prev={data.chapter.prevChapter} next={data.chapter.nextChapter} />
 </div>
 
 <!-- Slide-over Note Drawer -->

@@ -138,7 +138,7 @@ estiverem commitados. Ao mudar um DTO: `pnpm contracts:generate` e commitar o re
 4. **Cache de IA** (`ai_cache`) sem versionamento de prompt e com fallback genérico nas análises
    de capítulo/livro (o quiz já não tem fallback).
 5. **Grants manuais** das tabelas novas ao papel `biblia_app` em dev (documentado em `data-model.md`).
-6. Página do capítulo (`[book]/[chapter]/+page.svelte`, ~440 linhas) acima do limite de 300
+6. Página do capítulo (`[book]/[chapter]/+page.svelte`, ~410 linhas; barra de observar e navegação já extraídas, falta separar o estado de notas e estudo) acima do limite de 300
    linhas do padrão do projeto.
 7. Conteúdo didático (study aids, quizzes, originais) cobre poucos livros; o gargalo é conteúdo,
    não código.
