@@ -169,6 +169,17 @@ export async function loadReadChapters(book: string, authenticated: boolean): Pr
   }
 }
 
+/** Every chapter the learner has read, across books (guest: local, signed in: API). */
+export async function loadAllProgress(authenticated: boolean): Promise<ReadingProgressItem[]> {
+  if (!authenticated) return getGuestProgress();
+  try {
+    return await api.getProgress();
+  } catch (err) {
+    console.warn('Falha ao carregar progresso da nuvem:', err);
+    return [];
+  }
+}
+
 export async function setChapterRead(
   book: string,
   chapter: number,
