@@ -102,6 +102,10 @@ mostra o próximo capítulo não lido depois do último lido, em ordem canônica
 **Progresso geral.** `/progresso` mostra a porcentagem da Bíblia lida, os livros concluídos e o avanço
 por gênero (`lib/study/overview.ts`, função pura testada), com o mesmo progresso da home.
 
+**Plano de leitura.** Na mesma página, a Bíblia toda em ordem canônica dividida igualmente em 365, 180
+ou 90 dias (`lib/study/plan.ts`, funções puras testadas). Mostra a leitura do dia e se você está em dia
+ou atrasado, comparando com o progresso real. O plano fica só no `localStorage` do aparelho, sem API.
+
 **Cartão de conclusão do livro.** `/[book]/complete` junta o que o servidor sabe
 (`GET /completion/:book`: melhor nota do quiz por capítulo, explicações, cartões) com o que o
 visitante guarda localmente (capítulos lidos e destaques, via `stores/study.ts`). A arte é SVG

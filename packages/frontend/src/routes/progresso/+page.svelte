@@ -1,5 +1,6 @@
 <script lang="ts">
   import Breadcrumbs from '$components/bible/Breadcrumbs.svelte';
+  import ReadingPlanCard from '$components/study/ReadingPlanCard.svelte';
   import { isAuthenticated, isAuthLoading } from '$stores/auth';
   import { loadAllProgress } from '$stores/study';
   import { overviewOf } from '$lib/study/overview';
@@ -63,6 +64,8 @@
         {overview.chaptersRead} de {overview.chapterCount} capítulos · {overview.booksCompleted} de {overview.bookCount} livros concluídos
       </p>
     </section>
+
+    <ReadingPlanCard books={data.books} {progress} />
 
     <section class="space-y-3">
       <h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--color-muted)">Por gênero</h2>
