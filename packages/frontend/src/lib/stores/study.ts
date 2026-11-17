@@ -1,5 +1,6 @@
 import { browser } from '$app/environment';
 import { api } from '$api/client';
+import { getCurrentUserId } from '$stores/user';
 import type { Highlight, HighlightColor, UpsertHighlightPayload, ReadingProgressItem } from '$types';
 
 const GUEST_HIGHLIGHTS_KEY = 'biblia_guest_highlights';
@@ -237,6 +238,15 @@ export async function syncGuestStudyDataToCloud(): Promise<number> {
     }
   }
   writeLocal(GUEST_PROGRESS_KEY, failedProgress);
+
+  // Quiz attempts, review cards and reflections live on the server under the guest id.
+  // Best-effort: if this fails the data stays under the guest id and the next login retries.
+  try {
+    const claimed = await api.claimGuestData(getCurrentUserId());
+    synced += claimed.quizAttempts + claimed.reviewCards + claimed.reflections;
+  } catch (err) {
+    console.error('Falha ao trazer dados de visitante para a conta:', err);
+  }
 
   return synced;
 }

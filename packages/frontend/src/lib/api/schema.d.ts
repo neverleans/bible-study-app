@@ -494,6 +494,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/guest/claim": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Traz para a conta o que a pessoa fez como visitante (quiz, explicações e cartões) */
+        post: operations["GuestClaimController_claim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ai/chapter": {
         parameters: {
             query?: never;
@@ -950,6 +967,18 @@ export interface components {
             reflectionChapters: number;
             /** @description Cartões de revisão deste livro */
             reviewCardCount: number;
+        };
+        ClaimGuestDto: {
+            /** @description ID de visitante guardado neste navegador (UUID) */
+            guestId: string;
+        };
+        ClaimGuestResultDto: {
+            /** @description Tentativas de quiz trazidas para a conta */
+            quizAttempts: number;
+            /** @description Cartões de revisão trazidos (os que a conta já tinha são mantidos) */
+            reviewCards: number;
+            /** @description Explicações escritas trazidas para a conta */
+            reflections: number;
         };
         AnalyzeChapterDto: {
             /**
@@ -2010,6 +2039,36 @@ export interface operations {
             };
             /** @description Livro não encontrado */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GuestClaimController_claim: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimGuestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimGuestResultDto"];
+                };
+            };
+            /** @description Não autenticado */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

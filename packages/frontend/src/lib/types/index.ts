@@ -44,6 +44,7 @@ export type ReviewGrade = Schemas['GradeCardDto']['grade'];
 export type Reflection = Schemas['ReflectionDto'];
 
 export type BookStats = Schemas['BookStatsDto'];
+export type ClaimGuestResult = Schemas['ClaimGuestResultDto'];
 
 export type User = Schemas['UserProfileDto'];
 export type AuthResponse = Schemas['AuthResponseDto'];
