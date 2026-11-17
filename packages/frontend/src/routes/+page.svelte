@@ -1,11 +1,26 @@
 <script lang="ts">
   import BookCard from '$components/bible/BookCard.svelte';
+  import { isAuthenticated, isAuthLoading } from '$stores/auth';
+  import { loadAllProgress } from '$stores/study';
+  import { nextToRead, readCountByBook } from '$lib/study/continue';
   import type { PageData } from './$types';
+  import type { ReadingProgressItem } from '$types';
 
   let { data }: { data: PageData } = $props();
 
   let search = $state('');
   let activeTab = $state<'ALL' | 'OT' | 'NT'>('ALL');
+  let progress = $state<ReadingProgressItem[]>([]);
+
+  let readCounts = $derived(readCountByBook(progress));
+  let resume = $derived(nextToRead(progress, data.books));
+
+  // Wait for the session check so signed-in users do not briefly see guest progress.
+  $effect(() => {
+    if (!$isAuthLoading) {
+      loadAllProgress($isAuthenticated).then((items) => (progress = items));
+    }
+  });
 
   const filteredBooks = $derived(
     data.books.filter((book) => {
@@ -34,6 +49,20 @@
       Selecione um livro para começar a leitura e reflexão
     </p>
   </div>
+
+  {#if resume}
+    <a
+      href="/{resume.bookAbbrev}/{resume.chapterNumber}"
+      class="flex items-center justify-between gap-4 p-4 rounded-2xl border transition-all hover:shadow-md hover:border-blue-500"
+      style="background-color: var(--color-surface); border-color: var(--color-border)"
+    >
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wider" style="color: var(--color-muted)">Continuar estudando</p>
+        <p class="text-xl font-bold">{resume.bookName} {resume.chapterNumber}</p>
+      </div>
+      <span class="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium">Continuar →</span>
+    </a>
+  {/if}
 
   <!-- Filter & Search Controls -->
   <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -85,7 +114,7 @@
   {:else}
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
       {#each filteredBooks as book (book.id)}
-        <BookCard {book} />
+        <BookCard {book} readCount={readCounts[book.abbrev.toLowerCase()] ?? 0} />
       {/each}
     </div>
   {/if}
