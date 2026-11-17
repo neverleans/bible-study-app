@@ -1657,6 +1657,54 @@
         ]
       }
     },
+    "/completion/{book}": {
+      "get": {
+        "operationId": "CompletionController_getBookStats",
+        "summary": "O que a pessoa fez neste livro (quiz, explicações, cartões) para o cartão de conclusão",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "ID do usuário (RLS) quando não autenticado por JWT",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "book",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookStatsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Livro não encontrado"
+          }
+        },
+        "tags": [
+          "completion"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/ai/chapter": {
       "post": {
         "operationId": "AiController_analyzeChapter",
@@ -2940,6 +2988,74 @@
           "feedback",
           "feedbackError",
           "createdAt"
+        ]
+      },
+      "ChapterQuizBestDto": {
+        "type": "object",
+        "properties": {
+          "chapterNumber": {
+            "type": "number"
+          },
+          "bestScore": {
+            "type": "number",
+            "description": "Melhor nota entre as tentativas"
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "chapterNumber",
+          "bestScore",
+          "total"
+        ]
+      },
+      "BookStatsDto": {
+        "type": "object",
+        "properties": {
+          "bookAbbrev": {
+            "type": "string"
+          },
+          "bookName": {
+            "type": "string"
+          },
+          "chapterCount": {
+            "type": "number",
+            "description": "Capítulos do livro"
+          },
+          "quizBestByChapter": {
+            "description": "Melhor nota por capítulo com quiz tentado",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChapterQuizBestDto"
+            }
+          },
+          "quizAveragePercent": {
+            "type": "number",
+            "description": "Média das melhores notas (0 a 100); 0 se não houver tentativas"
+          },
+          "reflectionCount": {
+            "type": "number",
+            "description": "Explicações escritas neste livro"
+          },
+          "reflectionChapters": {
+            "type": "number",
+            "description": "Capítulos com pelo menos uma explicação"
+          },
+          "reviewCardCount": {
+            "type": "number",
+            "description": "Cartões de revisão deste livro"
+          }
+        },
+        "required": [
+          "bookAbbrev",
+          "bookName",
+          "chapterCount",
+          "quizBestByChapter",
+          "quizAveragePercent",
+          "reflectionCount",
+          "reflectionChapters",
+          "reviewCardCount"
         ]
       },
       "AnalyzeChapterDto": {

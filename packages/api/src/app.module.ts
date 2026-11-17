@@ -13,6 +13,7 @@ import { OriginalModule } from './modules/original/original.module';
 import { QuizModule } from './modules/quiz/quiz.module';
 import { ReviewModule } from './modules/review/review.module';
 import { ReflectionsModule } from './modules/reflections/reflections.module';
+import { CompletionModule } from './modules/completion/completion.module';
 import { AiModule } from './modules/ai/ai.module';
 import { StudyAidsModule } from './modules/study-aids/study-aids.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -36,6 +37,7 @@ import { APP_GUARD } from '@nestjs/core';
     QuizModule,
     ReviewModule,
     ReflectionsModule,
+    CompletionModule,
     AiModule,
     StudyAidsModule,
     AuthModule,
