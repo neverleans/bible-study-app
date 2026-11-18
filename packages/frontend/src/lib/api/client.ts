@@ -27,6 +27,7 @@ import type {
   ReviewGrade,
   Reflection,
   BookStats,
+  ClaimGuestResult,
 } from '$types';
 import { getCurrentUserId } from '$stores/user';
 
@@ -255,6 +256,11 @@ export class ApiClient {
   // Book completion card stats
   async getBookStats(book: string): Promise<BookStats> {
     return this.get<BookStats>(`/completion/${encodeURIComponent(book)}`);
+  }
+
+  // Brings quiz attempts, review cards and reflections done as a guest into the account
+  async claimGuestData(guestId: string): Promise<ClaimGuestResult> {
+    return this.post<ClaimGuestResult>('/guest/claim', { guestId });
   }
 
   // AI Endpoints

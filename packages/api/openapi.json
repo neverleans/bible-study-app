@@ -1705,6 +1705,46 @@
         ]
       }
     },
+    "/guest/claim": {
+      "post": {
+        "operationId": "GuestClaimController_claim",
+        "summary": "Traz para a conta o que a pessoa fez como visitante (quiz, explicações e cartões)",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimGuestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaimGuestResultDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado"
+          }
+        },
+        "tags": [
+          "guest"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/ai/chapter": {
       "post": {
         "operationId": "AiController_analyzeChapter",
@@ -3056,6 +3096,40 @@
           "reflectionCount",
           "reflectionChapters",
           "reviewCardCount"
+        ]
+      },
+      "ClaimGuestDto": {
+        "type": "object",
+        "properties": {
+          "guestId": {
+            "type": "string",
+            "description": "ID de visitante guardado neste navegador (UUID)"
+          }
+        },
+        "required": [
+          "guestId"
+        ]
+      },
+      "ClaimGuestResultDto": {
+        "type": "object",
+        "properties": {
+          "quizAttempts": {
+            "type": "number",
+            "description": "Tentativas de quiz trazidas para a conta"
+          },
+          "reviewCards": {
+            "type": "number",
+            "description": "Cartões de revisão trazidos (os que a conta já tinha são mantidos)"
+          },
+          "reflections": {
+            "type": "number",
+            "description": "Explicações escritas trazidas para a conta"
+          }
+        },
+        "required": [
+          "quizAttempts",
+          "reviewCards",
+          "reflections"
         ]
       },
       "AnalyzeChapterDto": {
